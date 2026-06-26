@@ -54,7 +54,7 @@
 
 ## 2. دليل المهارات المضمنة (Skills Catalog)
 
-يشتمل المستودع على 7 مهارات مخصصة لحراسة جودة الكود البرمجي (AI Guards) وتهيئة المشاريع، وهي مقسمة كالتالي:
+يشتمل المستودع على 5 مهارات مخصصة لحراسة جودة الكود البرمجي (AI Guards) وتهيئة المشاريع، وهي مقسمة كالتالي:
 
 </div>
 
@@ -65,8 +65,6 @@
 | **Clean Code Guard** | [`skills/clean-code-guard`](skills/clean-code-guard/SKILL.md) | مراجعة وفحص كود الإنتاج البرمجي (Production Code) لضمان تطبيق قواعد SOLID, DRY, KISS, YAGNI. |
 | **Test Guard** | [`skills/test-guard`](skills/test-guard/SKILL.md) | مراجعة كود الاختبارات البرمجية (Jest/Vitest/Pytest) لمنع تضخم الاختبارات وضمان كفاءتها وتغطيتها. |
 | **Docs Guard** | [`skills/docs-guard`](skills/docs-guard/SKILL.md) | مراجعة التوثيقات والملفات التوضيحية (README/Changelogs) لمنع انحراف التوثيق عن الأكواد الفعلية. |
-| **WP Guard** | [`skills/wp-guard`](skills/wp-guard/SKILL.md) | حارس خاص بمشاريع ووردبريس، يتحقق من حماية المدخلات والتنظيف والتحقق من الصلاحيات والـ Nonces. |
-| **Woo Guard** | [`skills/woo-guard`](skills/woo-guard/SKILL.md) | حارس خاص بمشاريع WooCommerce لضمان توافق التخزين عالي الأداء (HPOS) وأمان عمليات الدفع والطلب. |
 
 ---
 
@@ -81,7 +79,7 @@
 ```text
 SaaS/
 ├── .agents/                  # مهارات وإعدادات الـ Spec Kit للذكاء الاصطناعي
-├── skills/                   # المهارات البرمجية وحراس الجودة الـ 7 المرفقة بالمستودع
+├── skills/                   # المهارات البرمجية وحراس الجودة الـ 5 المرفقة بالمستودع
 ├── saas-template-v3/         # قالب البدء السريع الجاهز للمشاريع الجديدة
 │   ├── package.json          # الحزم المثبتة مسبقاً (Next.js, Convex, Zod, Zustand)
 │   └── ...
