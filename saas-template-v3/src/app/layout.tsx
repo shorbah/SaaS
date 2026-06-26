@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Sans_Arabic } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
-import { ConvexClientProvider } from "@/components/providers/convex-client-provider";
+import { SupabaseProvider } from "@/components/providers/supabase-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
 const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
@@ -13,7 +13,7 @@ const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
 
 export const metadata: Metadata = {
   title: "SaaS Template v3",
-  description: "A premium SaaS template built with Next.js, Convex, and Tailwind CSS",
+  description: "A premium SaaS template built with Next.js, Supabase, and Tailwind CSS",
 };
 
 export default function RootLayout({
@@ -30,10 +30,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ConvexClientProvider>
+          <SupabaseProvider>
             {children}
             <Toaster position="bottom-left" closeButton richColors />
-          </ConvexClientProvider>
+          </SupabaseProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -29,7 +29,7 @@ export default function HomePage() {
   const t = {
     ar: {
       title: "قالب تأسيس المشاريع الممتاز V3",
-      subtitle: "مرحبًا بك في بيئة التطوير الخاصة بك. تم إعداد هذا القالب بالكامل ليتوافق مع معايير SaaS Master Foundation v3.2.0.",
+      subtitle: "مرحبًا بك في بيئة التطوير الخاصة بك. تم إعداد هذا القالب بالكامل ليتوافق مع معايير SaaS Master Foundation v3.4.0.",
       tag: "جاهز للتطوير",
       theme: "المظهر",
       langToggle: "English",
@@ -37,19 +37,19 @@ export default function HomePage() {
       stackDesc: "التقنيات المدمجة والمهيأة مسبقًا في القالب:",
       features: [
         { title: "Next.js 15 (App Router)", desc: "هيكلية متطورة للمسارات، وتوافق تام مع التصدير الثابت وأداء LCP سريع." },
-        { title: "Convex Real-time Backend", desc: "قاعدة بيانات سحابية لحظية مع إعداد آمن للمصادقة واستعلامات تفاعلية." },
+        { title: "Supabase Real-time Backend", desc: "قاعدة بيانات علاقية لحظية تدعم مصادقة المستخدمين وسياسات الـ RLS وحفظ الملفات." },
         { title: "Tailwind CSS v3", desc: "تصميم متجاوب بالكامل (Mobile-First) يعتمد على الخصائص المنطقية لتوافق RTL تلقائي." },
         { title: "إدارة المظهر والتدويل", desc: "دعم كامل للوضع الداكن/الفاتح عبر next-themes مع بنية مجهزة للترجمة ثنائية اللغة." }
       ],
       verifyTitle: "خطوات التحقق السريع",
       verifyStep1: "تأكد من نسخ .env.example إلى .env.local وملء القيم الخاصة بك.",
-      verifyStep2: "قم بإنشاء وتفعيل قاعدة بيانات Convex عبر تشغيل npx convex dev.",
+      verifyStep2: "قم بتهيئة قاعدة البيانات والمصادقة في لوحة تحكم Supabase وتأكيد مفاتيح الربط.",
       verifyStep3: "ابدأ كتابة منطق العمل والواجهات في مجلد src/features.",
       footer: "تم التأسيس بواسطة Antigravity AI لصالح shorbah/SaaS"
     },
     en: {
       title: "Premium Boilerplate V3",
-      subtitle: "Welcome to your development environment. This boilerplate is fully set up in compliance with SaaS Master Foundation v3.2.0 rules.",
+      subtitle: "Welcome to your development environment. This boilerplate is fully set up in compliance with SaaS Master Foundation v3.4.0 rules.",
       tag: "Ready for Dev",
       theme: "Theme",
       langToggle: "العربية",
@@ -57,13 +57,13 @@ export default function HomePage() {
       stackDesc: "Integrated technologies configured and ready to build upon:",
       features: [
         { title: "Next.js 15 (App Router)", desc: "Advanced routing structure, fully compatible with static exports and fast LCP performance." },
-        { title: "Convex Real-time Backend", desc: "Real-time cloud database with secure auth structure and reactive queries." },
+        { title: "Supabase Real-time Backend", desc: "Real-time relational database with built-in Auth, Storage, and RLS security." },
         { title: "Tailwind CSS v3", desc: "Mobile-first responsive styling utilizing logical properties for seamless RTL support." },
         { title: "Themes & i18n", desc: "Complete light/dark mode support with next-themes and layout scaffolded for translation." }
       ],
       verifyTitle: "Quick Verification Steps",
       verifyStep1: "Make sure to copy .env.example to .env.local and fill in your keys.",
-      verifyStep2: "Provision your Convex database by running npx convex dev in your shell.",
+      verifyStep2: "Configure your Database and Auth in Supabase Dashboard and verify your keys.",
       verifyStep3: "Start building your pages and logic inside src/features directory.",
       footer: "Created by Antigravity AI for shorbah/SaaS"
     }

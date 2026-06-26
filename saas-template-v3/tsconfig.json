@@ -19,16 +19,14 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "convex/*": ["./convex/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    "convex/**/*.ts"
+    ".next/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }
