@@ -1,0 +1,21 @@
+# dependencies
+/node_modules
+/.pnpm-store
+
+# Next.js build outputs
+/.next/
+/out/
+
+# production / local env files
+.env*.local
+.env
+
+# Convex files
+.convex/
+/convex.json
+
+# IDEs and OS files
+.DS_Store
+*.pem
+.idea/
+.vscode/

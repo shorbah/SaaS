@@ -3,13 +3,13 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/shorbah/SaaS/main/.agents/skills/speckit-init/resources/speckit-logo.png" alt="SaaS Master Foundation Logo" width="120" style="border-radius: 20px; margin-bottom: 20px;" onerror="this.style.display='none'" />
   
-  <h3>إطار العمل المتكامل والذكي لتطوير تطبيقات الـ SaaS وحراسة الجودة برمجياً</h3>
+  <h3>إطار العمل المتكامل والذكي لتطوير تطبيقات الـ SaaS ومختلف مشاريع الويب وحراسة الجودة برمجياً</h3>
 
   <p align="center">
-    <img src="https://img.shields.io/badge/Next.js-14%2F15-black?style=for-the-badge&logo=next.js" alt="Next.js" />
+    <img src="https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js" alt="Next.js" />
     <img src="https://img.shields.io/badge/Convex-Backend-yellow?style=for-the-badge&logo=convex" alt="Convex" />
     <img src="https://img.shields.io/badge/TailwindCSS-v3-38B2AC?style=for-the-badge&logo=tailwind-css" alt="Tailwind CSS" />
-    <img src="https://img.shields.io/badge/shadcn%2Fui-Selected-black?style=for-the-badge" alt="shadcn/ui" />
+    <img src="https://img.shields.io/badge/next--themes-Dark--Mode-blueviolet?style=for-the-badge" alt="next-themes" />
     <img src="https://img.shields.io/badge/Antigravity-AI%20CoPilot-6B46C1?style=for-the-badge" alt="Antigravity" />
   </p>
 </div>
@@ -18,7 +18,7 @@
 
 <div dir="rtl" style="text-align: right; direction: rtl;">
 
-مرحباً بك في مستودع **SaaS Master Foundation**! هذا المستودع يمثل حجر الأساس لجميع مشاريع الـ SaaS الاحترافية التي يتم بناؤها وتطويرها بالتعاون مع وكيل الذكاء الاصطناعي **Antigravity**. يحتوي المستودع على القواعد الأساسية الهيكلية، قوالب البدء السريع، ومجموعة متكاملة من مهارات حراسة جودة الكود والأمان لضمان تسليم منتجات برمجية خالية من العيوب وبأعلى كفاءة جمالية ووظيفية.
+مرحباً بك في مستودع **SaaS Master Foundation**! هذا المستودع يمثل حجر الأساس لجميع مشاريعك الاحترافية (سواء كانت تطبيقات SaaS متعددة المستأجرين، أو تطبيقات مستخدم واحد، أو مواقع عامة، أو أدوات داخلية) التي يتم بناؤها وتطويرها بالتعاون مع مساعد الذكاء الاصطناعي **Antigravity**. يحتوي المستودع على القواعد الأساسية الهيكلية، وقالب البدء السريع المطور، ومجموعة متكاملة من مهارات حراسة جودة الكود والأمان لضمان تسليم منتجات برمجية خالية من العيوب وبأعلى كفاءة جمالية ووظيفية.
 
 </div>
 
@@ -30,9 +30,11 @@
 1. [المكونات الأساسية للمستودع](#1-المكونات-الأساسية-للمستودع)
 2. [دليل المهارات المضمنة (Skills Catalog)](#2-دليل-المهارات-المضمنة-skills-catalog)
 3. [هيكلية المشروع الافتراضية (Workspace Structure)](#3-هيكلية-المشروع-الافتراضية-workspace-structure)
-4. [دورة حياة تطوير الميزات (AI Agentic Workflow)](#4-دورة-حياة-تطوير-الميزات-ai-agentic-workflow)
-5. [خطوات الإعداد والتشغيل السريع](#5-خطوات-الإعداد-والتشغيل-السريع)
-6. [القواعد الصارمة للكتابة والتنسيق](#6-القواعد-الصارمة-للكتابة-والتنسيق)
+4. [ميزات قالب البدء السريع (saas-template-v3)](#4-ميزات-قالب-البدء-السريع-saas-template-v3)
+5. [دورة حياة تطوير الميزات (AI Agentic Workflow)](#5-دورة-حياة-تطوير-الميزات-ai-agentic-workflow)
+6. [خطوات الإعداد والتشغيل السريع](#6-خطوات-الإعداد-والتشغيل-السريع)
+7. [القواعد الصارمة للكتابة والتنسيق](#7-القواعد-الصارمة-للكتابة-والتنسيق)
+8. [الأقسام والميزات المضافة حديثاً (v3.2.0)](#8-الأقسام-والميزات-المضافة-حديثا-v320)
 
 </div>
 
@@ -43,7 +45,7 @@
 ## 1. المكونات الأساسية للمستودع
 
 يحتوي المستودع على ملفين توجيهيين رئيسيين لضمان التزامن بين الأجهزة والتحقق من الجودة:
-* 📄 **[saas-master-foundation-v3.md](saas-master-foundation-v3.md)**: القاعدة الأساسية المحدثة والمصممة للعمل بكفاءة فائقة مع وكلاء الذكاء الاصطناعي لتطوير أنظمة SaaS باستخدام معمارية **Convex + Next.js** وتضمين فحوصات السلامة وحراس الجودة والوضع الداكن التلقائي ودعم اللغة العربية RTL.
+* 📄 **[saas-master-foundation-v3.md](saas-master-foundation-v3.md)**: القاعدة الأساسية المحدثة والمصممة للعمل بكفاءة فائقة مع وكلاء الذكاء الاصطناعي لتطوير أنظمة SaaS والويب باستخدام معمارية **Convex + Next.js** وتضمين فحوصات السلامة، وحراس الجودة، والوضع الداكن التلقائي، ودعم اللغة العربية RTL.
 * 📄 **[new-device-setup.md](new-device-setup.md)**: الدليل الشامل لتهيئة وإعداد أي جهاز جديد للعمل مع **Antigravity** و **Spec Kit** وتثبيت وتفعيل كافة المهارات عالمياً ومحلياً باستخدام أدوات بايثون السريعة مثل `uv`.
 
 </div>
@@ -92,7 +94,23 @@ SaaS/
 
 <div dir="rtl" style="text-align: right; direction: rtl;">
 
-## 4. دورة حياة تطوير الميزات (AI Agentic Workflow)
+## 4. ميزات قالب البدء السريع (saas-template-v3)
+
+يمثل المجلد [saas-template-v3](saas-template-v3/) قالباً متكاملاً ومختبراً تم بناؤه وتجميعه بنجاح ويتميز بالآتي:
+* **Next.js 15 (App Router)**: مهيأ بـ Strict Mode ولدعم بناء الصفحات الثابتة والسيرفر.
+* **إدارة المظهر المتطورة (next-themes)**: مزود بمكون [theme-provider.tsx](saas-template-v3/src/components/providers/theme-provider.tsx) لمنع وميض الواجهات (Hydration Flashes) ودعم مظهر النظام/الوضع الداكن/الوضع الفاتح.
+* **Convex Backend آمن**: يحتوي على مزود للعميل يتجنب أخطاء التهيئة الفارغة عند غياب المفاتيح البيئية، لضمان استقرار البناء في خوادم الـ CI.
+* **تجاوب RTL مثالي**: يدعم مكتبة Tailwind CSS v3 مع لوحة ألوان HSL مخصصة ومكونات متوافقة مع shadcn/ui وتأثيرات حركة مدمجة عبر `tailwindcss-animate`.
+* **صفحة ترحيب تفاعلية**: صفحة [page.tsx](saas-template-v3/src/app/page.tsx) متألقة تدعم اللغتين (العربية والإنجليزية) بالكامل مع تحكم تفاعلي في المظهر واختبار الحالات.
+* **تنظيم المخططات**: مخطط فارغ ومرن في [schema.ts](saas-template-v3/convex/schema.ts) مع توجيهات للمطور لتجنب فرض الجداول غير المطلوبة.
+
+</div>
+
+---
+
+<div dir="rtl" style="text-align: right; direction: rtl;">
+
+## 5. دورة حياة تطوير الميزات (AI Agentic Workflow)
 
 يسير تطوير الميزات البرمجية بالتعاون مع المساعد الذكي عبر مسارين لحماية كود المشروع:
 
@@ -111,7 +129,7 @@ SaaS/
 
 <div dir="rtl" style="text-align: right; direction: rtl;">
 
-## 5. خطوات الإعداد والتشغيل السريع
+## 6. خطوات الإعداد والتشغيل السريع
 
 إذا كنت تقوم بتهيئة جهاز جديد أو بدء مشروع قائم:
 
@@ -151,12 +169,29 @@ Copy-Item -Path ".\skills\*" -Destination $globalSkillsPath -Recurse -Force
 
 <div dir="rtl" style="text-align: right; direction: rtl;">
 
-## 6. القواعد الصارمة للكتابة والتنسيق
+## 7. القواعد الصارمة للكتابة والتنسيق
 
 للحفاظ على جودة الأكواد والتصاميم، نلتزم دائماً بالقوانين التالية:
 * **RTL-First**: كتابة التصاميم والأكواد بالاعتماد على الخصائص المنطقية للـ CSS (مثل `ms-`, `pe-`, `start-`, `end-`) لدعم مثالي للغة العربية.
 * **shadcn-First Policy**: يُمنع بناء عناصر الواجهات الأساسية (أزرار، حقول إدخال، جداول) من الصفر، بل يتم استيراد مكونات `shadcn/ui` وتخصيصها لتفادي الأخطاء البرمجية.
 * **No AI Slop**: التدقيق البصري الدقيق للمكونات والمسافات وضمان أن الواجهات تظهر بشكل راقٍ وممتاز.
+* **Mobile-First**: كتابة كود Tailwind للجوال أولاً ثم إضافة كلاسات الشاشات الكبيرة (`md:`, `lg:`).
+* **Conventional Commits**: التزام بصيغة `type(scope): description` لجميع الـ Commits.
+
+---
+
+## 8. الأقسام والميزات المضافة حديثاً (v3.2.0)
+
+تم ترقية إطار العمل وتحديث المستندات والقالب لتغطية الأقسام الاستراتيجية الهامة التالية:
+
+| القسم | المسمى والهدف | الوظيفة والمحتوى |
+|:------|:------|:------|
+| **§15** | **ملف تعريف المشروع (Project Profiles)** | تحديد نوع المشروع (SaaS كامل، مستخدم واحد، موقع عام، أداة داخلية) وتخصيص تفعيل القواعد بناءً عليه لتجنب فرض Auth أو Multi-Tenancy بشكل إجباري صلب. |
+| **§16** | **الفوترة والاشتراكات (Billing)** | قواعد تنفيذ الفوترة وتكامل Stripe باستخدام Convex Actions و Webhooks بشكل آمن خلف الكواليس. |
+| **§17** | **الامتثال والخصوصية (PDPL)** | الامتثال الكامل لنظام حماية البيانات الشخصية السعودي وحماية الخصوصية في PostHog وتوفير حق الحذف للمستخدم. |
+| **§18** | **استراتيجية النسخ الاحتياطي (Backups)** | خطة النسخ الاحتياطي الدوري لـ Convex Snapshot، وحفظ نسخ مشفرة لملفات البيئة الحساسة. |
+
+للتفاصيل الكاملة، يرجى مراجعة ملف الماستر الأساسي **[saas-master-foundation-v3.md](saas-master-foundation-v3.md)**.
 
 ---
 
