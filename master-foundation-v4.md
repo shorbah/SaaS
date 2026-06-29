@@ -447,4 +447,117 @@ perf(queries): optimize user list pagination
 4. **تخزين البيانات المحلي:** للمشاريع التي تطلب الامتثال الصارم لـ PDPL، يجب إعداد قاعدة بيانات Supabase المستضافة محلياً أو في نطاق جيو-مستقل داخل المملكة العربية السعودية.
 5. **النسخ الاحتياطي واستمرارية البيانات (Backup & DR):** تفعيل خيار Point-in-Time Recovery (PITR) في Supabase لأي مشروع إنتاجي حقيقي، مع تصدير (`pg_dump`) دوري يُخزّن في مكان مستقل خارج Supabase كنسخة احتياطية إضافية.
 
+---
+
+## 18. حماية البيانات الحساسة بـ Supabase Vault
+> ⚠️ **قاعدة عامة صارمة لجميع المشاريع:** Supabase Vault ليس مقتصراً على مفاتيح المستأجرين. هو الأداة الموحدة لتشفير **أي بيانات حساسة** في قاعدة البيانات: أسرار التطبيق، مفاتيح الـ API، متغيرات البيئة، وأعمدة بيانات المستخدمين (PII). كل مشروع يجب أن يستخدمه بمجرد وجود أي بيانات حساسة.
+
+### 18.1 الميزتان الأساسيتان (من التوثيق الرسمي)
+
+Vault يقدم ميزتين جوهريتين مختلفتين يجب معرفة متى تُستخدم كل منهما:
+
+| الميزة | الغرض | متى تستخدمها |
+|:-------|:-------|:-------------|
+| **1. إدارة الأسرار (Secrets)** | تخزين أسرار مشفرة يمكن استخدامها داخل قاعدة البيانات (Functions, Triggers, Webhooks) | مفاتيح API، متغيرات البيئة، بيانات الربط بخدمات خارجية |
+| **2. تشفير الأعمدة (TCE)** | تشفير أعمدة بعينها في جداولك الخاصة مع إنشاء View مفككة التشفير تلقائياً | PII مثل: البريد الإلكتروني، رقم الهوية، رقم الجوال، بيانات الصحة |
+
+### 18.2 الأساس التقني (pgsodium & AEAD)
+* **مستوى التشفير**: تُستخدم خوارزمية AEAD (Authenticated Encryption with Associated Data) المبنية على مكتبة `libsodium`، مما يعني أن البيانات مشفرة **ومُوقّعة** في آنٍ واحد — لا يمكن تزويرها حتى لو تمكن مهاجم من نسخها.
+* **مفاتيح التشفير خارج قاعدة البيانات**: مفاتيح فك التشفير **لا تُخزن أبداً داخل قاعدة البيانات** — بل تُدار في خدمة KMS خارجية خاصة بـ Supabase. حتى لو سُرق ملف النسخ الاحتياطي (Database Dump) كاملاً، لا يمكن لأحد فك تشفير البيانات.
+* **حماية النسخ الاحتياطية**: أي نسخة احتياطية أو Replication Stream تحمل البيانات مشفرة أيضاً بنفس الطريقة.
+* **مفاتيح متعددة لأغراض مختلفة**: يمكن إنشاء مفتاح تشفير مستقل لبيانات المستخدمين، ومفتاح آخر لبيانات التطبيق، لفصل مستويات الوصول.
+
+### 18.3 الميزة الأولى: إدارة الأسرار (Secrets Management)
+
+تُستخدم هذه الميزة لتخزين أي سر يحتاجه التطبيق للعمل، من متغيرات البيئة إلى مفاتيح الخدمات الخارجية.
+
+**أمثلة على البيانات المناسبة لهذه الميزة:**
+- مفتاح Stripe السري `sk_live_...`
+- مفتاح Resend أو Twilio
+- مفتاح تشفير JWT خاص بالتطبيق
+- أي سر يُستخدم داخل Postgres Functions أو Triggers أو Webhooks
+
+**الاستخدام الصحيح عبر SQL:**
+```sql
+-- إضافة سر جديد (الدالة الرسمية الصحيحة)
+select vault.create_secret(
+  'sk_live_abc123...',           -- قيمة السر
+  'stripe_secret_key',           -- اسم فريد (اختياري)
+  'Stripe live secret key'       -- وصف (اختياري)
+);
+-- ترجع UUID الخاص بالسر
+
+-- تحديث سر موجود
+select vault.update_secret(
+  '<uuid>',
+  'new_secret_value',
+  'stripe_secret_key',
+  'Updated Stripe key'
+);
+
+-- قراءة السر مفكوك التشفير (داخل قاعدة البيانات فقط)
+select decrypted_secret 
+from vault.decrypted_secrets 
+where name = 'stripe_secret_key';
+```
+
+**الاستخدام في Postgres Function (مثال عملي):**
+```sql
+create or replace function get_stripe_key()
+returns text
+language sql
+security definer -- ضروري للوصول الآمن
+as $$
+  select decrypted_secret 
+  from vault.decrypted_secrets 
+  where name = 'stripe_secret_key'
+  limit 1;
+$$;
+```
+
+### 18.4 الميزة الثانية: تشفير الأعمدة (Transparent Column Encryption - TCE)
+
+تُستخدم لحماية حقول حساسة مباشرة داخل جداول قاعدة البيانات. يتم إنشاء View مشفرة تلقائياً تُدعى `decrypted_<table_name>`.
+
+**أمثلة على الأعمدة التي يجب تشفيرها:**
+
+| البيانات | الجدول | العمود المشفر | View للقراءة |
+|:---------|:-------|:-------------|:-------------|
+| البريد الإلكتروني | `profiles` | `email` (مشفر) | `decrypted_profiles.decrypted_email` |
+| رقم الهوية | `profiles` | `national_id` (مشفر) | `decrypted_profiles.decrypted_national_id` |
+| رقم الجوال | `profiles` | `phone` (مشفر) | `decrypted_profiles.decrypted_phone` |
+| بيانات الدفع | `payment_methods` | `card_token` (مشفر) | `decrypted_payment_methods.decrypted_card_token` |
+
+**كيفية إنشاء عمود مشفر عبر Migration:**
+```sql
+-- تفعيل إضافة pgsodium
+create extension if not exists pgsodium;
+
+-- مثال: إضافة حقل بريد إلكتروني مشفر في جدول profiles
+-- (يتم إنشاء View مشفرة تلقائياً: decrypted_profiles)
+security label for pgsodium
+  on column profiles.email
+  is 'ENCRYPT WITH KEY ID <your-key-uuid>';
+```
+
+**قراءة البيانات المشفرة من الـ View:**
+```sql
+-- القراءة تتم من الـ View المشفرة، وليس من الجدول مباشرة
+select id, decrypted_email, decrypted_phone
+from decrypted_profiles
+where id = auth.uid();
+```
+
+### 18.5 القواعد الأمنية الإلزامية عند استخدام Vault
+
+1. **حظر الوصول من جهة العميل**: يُمنع منعاً باتاً استدعاء أو تخزين أو عرض أي بيانات مسترجعة من `vault.decrypted_secrets` في مكونات العميل (Client Components)، أو LocalStorage، أو SessionStorage، أو Zustand Store.
+2. **الوصول من السيرفر فقط**: يتم جلب الأسرار واستخدامها حصراً داخل:
+   - Postgres Functions (مع `security definer`)
+   - Route Handlers في Next.js (Server-Side)
+   - Supabase Edge Functions
+3. **تحديد صلاحيات الوصول**: يجب التفكير بعناية في أي Postgres Roles يحق لها الاستعلام من `vault.secrets` أو `vault.decrypted_secrets`. المنح الافتراضي يكون للـ `postgres` role فقط.
+4. **مبدأ الحد الأدنى من الصلاحيات (Least Privilege)**: دوال الـ API ترجع **نتيجة العملية فقط** (مثل: تم الدفع بنجاح) ولا ترجع السر نفسه للواجهة الأمامية.
+5. **لا تخزين الأسرار في `.env` وحده**: الـ `.env` مناسب لمفاتيح Supabase العامة، أما أسرار العملاء والبيانات الحساسة فتخزن في Vault حصراً.
+
 </div>
+
