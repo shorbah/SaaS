@@ -62,7 +62,7 @@ uv tool install specify-cli --prerelease
 بعد تشغيل السكربت، ستتوفر لديك المهارات التالية تلقائياً في شات Antigravity على الجهاز الجديد:
 - `/speckit-init` : لتهيئة أي مشروع جديد بضغطة زر.
 - `/frontend-design` : لتصميم وتنسيق الواجهات الاحترافية.
-- `/saas-foundation-v3` : للالتزام بقواعد ومعمارية SaaS V3.
+- `master-foundation` : المعيار التشغيلي الموحد (v6.1) لجودة البرمجيات والأمان وتصنيف المخاطر.
 - المهارات الأخرى لتشغيل دورة حياة المشروع (`/speckit-plan`, `/speckit-tasks`, `/speckit-implement`, إلخ).
 
 ---

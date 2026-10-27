@@ -3,14 +3,13 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/shorbah/SaaS/main/.agents/skills/speckit-init/resources/speckit-logo.png" alt="SaaS Master Foundation Logo" width="120" style="border-radius: 20px; margin-bottom: 20px;" onerror="this.style.display='none'" />
   
-  <h3>إطار العمل المتكامل والذكي لتطوير تطبيقات الـ SaaS ومختلف مشاريع الويب والجوال وحراسة الجودة برمجياً</h3>
+  <h3>المعيار الهندسي العام والتشغيلي لحراسة جودة البرمجيات والواجهات والمستندات (v6.1.0)</h3>
 
   <p align="center">
-    <img src="https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js" alt="Next.js" />
-    <img src="https://img.shields.io/badge/Supabase-Database-green?style=for-the-badge&logo=supabase" alt="Supabase" />
-    <img src="https://img.shields.io/badge/TailwindCSS-v3-38B2AC?style=for-the-badge&logo=tailwind-css" alt="Tailwind CSS" />
-    <img src="https://img.shields.io/badge/next--themes-Dark--Mode-blueviolet?style=for-the-badge" alt="next-themes" />
-    <img src="https://img.shields.io/badge/Antigravity-AI%20CoPilot-6B46C1?style=for-the-badge" alt="Antigravity" />
+    <img src="https://img.shields.io/badge/Version-v6.1.0-blue?style=for-the-badge" alt="Version 6.1.0" />
+    <img src="https://img.shields.io/badge/Antigravity-Universal%20Standard-6B46C1?style=for-the-badge" alt="Antigravity" />
+    <img src="https://img.shields.io/badge/Security-Zero%20Data%20Destruction-red?style=for-the-badge" alt="Zero Data Destruction" />
+    <img src="https://img.shields.io/badge/RTL-First-green?style=for-the-badge" alt="RTL First" />
   </p>
 </div>
 
@@ -18,188 +17,112 @@
 
 <div dir="rtl" style="text-align: right; direction: rtl;">
 
-مرحباً بك في مستودع **SaaS Master Foundation**! هذا المستودع يمثل حجر الأساس لجميع مشاريعك الاحترافية (سواء كانت تطبيقات SaaS كاملة، تطبيقات مستخدم واحد، تطبيقات جوال، مواقع عامة، أو أدوات داخلية) التي يتم بناؤها وتطويرها بالتعاون مع مساعد الذكاء الاصطناعي **Antigravity**. يحتوي المستودع على القواعد الأساسية الهيكلية، وقالب البدء السريع المطور، ومجموعة متكاملة من مهارات حراسة جودة الكود والأمان لضمان تسليم منتجات برمجية خالية من العيوب وبأعلى كفاءة جمالية ووظيفية.
+مرحباً بك في مستودع **SaaS Master Foundation**!  
+هذا المستودع يمثل حجر الأساس الهندسي والتشغيلي الموحد لكافة مشاريعك (تطبيقات سحابية كاملة، تطبيقات جوال، خدمات خلفية APIs، أدوات CLI ومكتبات، مواقع عامة، وحتى المستندات والعروض التقديمية). 
 
-</div>
+يعتمد المستودع على معيار **Master Foundation (v6.1.0)** المتوافق مع معايير وكلاء الذكاء الاصطناعي الحديثة (Open Agent Skills & Matt Pocock)، ويجمع بين صرامة الأمان الهندسي، وقمع استهلاك التوكنز، وسلاسة وسرعة الـ **Vibe Coding**.
 
 ---
-
-<div dir="rtl" style="text-align: right; direction: rtl;">
 
 ## 📑 محتويات الدليل
 1. [المكونات الأساسية للمستودع](#1-المكونات-الأساسية-للمستودع)
 2. [دليل المهارات المضمنة (Skills Catalog)](#2-دليل-المهارات-المضمنة-skills-catalog)
-3. [هيكلية المشروع الافتراضية (Workspace Structure)](#3-هيكلية-المشروع-الافتراضية-workspace-structure)
-4. [ميزات قالب البدء السريع (saas-template-v3)](#4-ميزات-قالب-البدء-السريع-saas-template-v3)
-5. [دورة حياة تطوير الميزات (AI Agentic Workflow)](#5-دورة-حياة-تطوير-الميزات-ai-agentic-workflow)
-6. [خطوات الإعداد والتشغيل السريع](#6-خطوات-الإعداد-والتشغيل-السريع)
-7. [القواعد الصارمة للكتابة والتنسيق](#7-القواعد-الصارمة-للكتابة-والتنسيق)
-8. [الأقسام والميزات المضافة حديثاً (v4.2.0)](#8-الأقسام-والميزات-المضافة-حديثا-v420)
-
-</div>
+3. [هيكلية المستودع النظيفة (Workspace Structure)](#3-هيكلية-المستودع-النظيفة-workspace-structure)
+4. [منهجية العمل وإدارة المخاطر (L0–L3 & AUDIT)](#4-منهجية-العمل-وإدارة-المخاطر-l0l3--audit)
+5. [خطوات الإعداد والتشغيل السريع على جهاز جديد](#5-خطوات-الإعداد-والتشغيل-السريع-على-جهاز-جديد)
+6. [الخطوط الحمراء غير القابلة للكسر](#6-الخطوط-الحمراء-غير-القابلة-للكسر)
 
 ---
-
-<div dir="rtl" style="text-align: right; direction: rtl;">
 
 ## 1. المكونات الأساسية للمستودع
 
-يحتوي المستودع على الملفات التوجيهية الرئيسية لضمان التزامن بين الأجهزة والتحقق من الجودة:
-* 📄 **[master-foundation-v5.md](master-foundation-v5.md)** (الجيل الأحدث v5.2.0): المعيار الهندسي العالمي الموحد والرشيق (Universal Agentic Operating Standard) المبني بفلسفة UNIX والتوجيه التدريجي (Progressive Disclosure) بمسار سريع للترقيعات ومسار خماسي للميزات، وسياسة الحظر التام لتدمير البيانات، وسجل الطلبات.
-* 📄 **[master-foundation-v4.md](master-foundation-v4.md)** (مرجع الإصدار v4.2.0): الدليل الشامل والمفصل لتطوير أنظمة الويب والجوال بمعمارية Supabase + Next.js وواجهات RTL-First وحراس الجودة والامتثال لـ PDPL.
-* 📄 **[new-device-setup.md](new-device-setup.md)**: الدليل الشامل لتهيئة وإعداد أي جهاز جديد للعمل مع **Antigravity** و **Spec Kit** وتثبيت وتفعيل كافة المهارات عالمياً ومحلياً باستخدام أدوات بايثون السريعة مثل `uv`.
-
-</div>
+* 📄 **[MASTER_FOUNDATION_V6_1_BUNDLE.md](MASTER_FOUNDATION_V6_1_BUNDLE.md)**: الحزمة الشاملة للإصدار v6.1 المفككة إلى موجه مسارات (`SKILL.md`) ومراجع تخصصية تسري تدريجياً لتقليل استهلاك التوكنز.
+* 📄 **[new-device-setup.md](new-device-setup.md)**: الدليل الشامل لتهيئة وإعداد أي جهاز جديد للعمل مع **Antigravity** و **Spec Kit** وتفعيل كافة المهارات عالمياً.
+* 📄 **[AGENTS.md](AGENTS.md)**: كتلة التوجيه الإلزامية الخفيفة التي تحكم سلوك الوكلاء في جذر المشروع.
 
 ---
-
-<div dir="rtl" style="text-align: right; direction: rtl;">
 
 ## 2. دليل المهارات المضمنة (Skills Catalog)
 
-يشتمل المستودع على 5 مهارات مخصصة لحراسة جودة الكود البرمجي (AI Guards) وتهيئة المشاريع، وهي مقسمة كالتالي:
-
-</div>
+يشتمل المستودع على المهارات الأساسية لحراسة الجودة والأمان وهندسة التطوير:
 
 | المهارة | المسار المحلي | الوصف والوظيفة |
 | :--- | :--- | :--- |
-| **Master Foundation v4** | [`skills/master-foundation-v4`](skills/master-foundation-v4/SKILL.md) | فرض معمارية التطوير الخاصة بـ V4، والتحقق المسبق من التهيئة، وتطبيق قواعد التصميم والوضع الداكن والتأسيس التلقائي للقالب. |
-| **Frontend Design** | [`skills/frontend-design`](skills/frontend-design/SKILL.md) | إرشادات لبناء واجهات أمامية مميزة وراقية وتجنب المظهر التقليدي المبتذل لأكواد الذكاء الاصطناعي (Anti-AI-Slop). |
-| **Clean Code Guard** | [`skills/clean-code-guard`](skills/clean-code-guard/SKILL.md) | مراجعة وفحص كود الإنتاج البرمجي (Production Code) لضمان تطبيق قواعد SOLID, DRY, KISS, YAGNI. |
-| **Test Guard** | [`skills/test-guard`](skills/test-guard/SKILL.md) | مراجعة كود الاختبارات البرمجية (Jest/Vitest/Playwright) لمنع تضخم الاختبارات وضمان كفاءتها وتغطيتها. |
-| **Docs Guard** | [`skills/docs-guard`](skills/docs-guard/SKILL.md) | مراجعة التوثيقات والملفات التوضيحية (README/Changelogs) لمنع انحراف التوثيق عن الأكواد الفعلية. |
+| **Master Foundation (v6.1)** | [`skills/master-foundation`](skills/master-foundation/SKILL.md) | المعيار التشغيلي الموحد، توجيه المخاطر، بوابات الجودة، ومنع تدمير البيانات وحماية الأسرار. |
+| **Frontend Design** | [`skills/frontend-design`](skills/frontend-design/SKILL.md) | إرشادات بناء واجهات مستخدم احترافية راقية خالية من الابتذال (Anti-AI-Slop). |
+| **Clean Code Guard** | [`skills/clean-code-guard`](skills/clean-code-guard/SKILL.md) | فحص كود الإنتاج لضمان تطبيق مبادئ SOLID, DRY, KISS, YAGNI ومنع التعقيد الزائد. |
+| **Test Guard** | [`skills/test-guard`](skills/test-guard/SKILL.md) | مراجعة الاختبارات لمنع الاختبارات الصورية وضمان فاعلية الـ Assertions. |
+| **Docs Guard** | [`skills/docs-guard`](skills/docs-guard/SKILL.md) | مطابقة التوثيق المكتوب مع سلوك الأكواد الفعلي ومنع الانجراف المعرفي. |
 
 ---
 
-<div dir="rtl" style="text-align: right; direction: rtl;">
+## 3. هيكلية المستودع النظيفة (Workspace Structure)
 
-## 3. هيكلية المشروع الافتراضية (Workspace Structure)
-
-تعتمد المشاريع على معمارية عزل الميزات (Feature Isolation) كالتالي:
-
-</div>
+<div dir="ltr" style="text-align: left;">
 
 ```text
 SaaS/
-├── .agents/                  # مهارات وإعدادات الـ Spec Kit للذكاء الاصطناعي
-├── skills/                   # المهارات البرمجية وحراس الجودة الـ 5 المرفقة بالمستودع
-├── saas-template-v3/         # قالب البدء السريع الجاهز للمشاريع الجديدة
-│   ├── package.json          # الحزم المثبتة مسبقاً (Next.js, Supabase, Zod, Zustand)
-│   └── ...
-├── master-foundation-v4.md   # إرشادات وقواعد المعمارية الشاملة لـ v4
+├── .agents/skills/           # مهارات Spec Kit و Impeccable و Master Foundation المحلية
+├── skills/                   # حزم المهارات النظيفة المخصصة للتوزيع والمزامنة
+│   ├── clean-code-guard/
+│   ├── docs-guard/
+│   ├── frontend-design/
+│   ├── master-foundation/    # المعيار v6.1 المفكك
+│   └── test-guard/
+├── docs/                     # سجل القرارات المعمارية الموحد والتدقيق
+│   └── audit/
+├── MASTER_FOUNDATION_V6_1_BUNDLE.md # الحزمة المرجعية الكاملة لـ v6.1
 ├── new-device-setup.md       # دليل تهيئة الأجهزة الجديدة
-└── README.md                 # ملف التوضيح الرئيسي الحالي
+├── AGENTS.md                 # كتلة القواعد الحاكمة للمشروع
+├── CLAUDE.md                 # قواعد البيئات الموحدة
+├── .cursorrules              # قواعد محررات Cursor و Windsurf
+└── README.md                 # التوثيق العام الحالي
 ```
 
----
-
-<div dir="rtl" style="text-align: right; direction: rtl;">
-
-## 4. ميزات قالب البدء السريع (saas-template-v3)
-
-يمثل المجلد [saas-template-v3](saas-template-v3/) قالباً متكاملاً ومختبراً تم بناؤه وتجميعه بنجاح ويتميز بالآتي:
-* **Next.js 15 (App Router)**: مهيأ بـ Strict Mode ولدعم بناء الصفحات الثابتة والسيرفر.
-* **إدارة المظهر المتطورة (next-themes)**: مزود بمكون [theme-provider.tsx](saas-template-v3/src/components/providers/theme-provider.tsx) لمنع وميض الواجهات (Hydration Flashes) ودعم مظهر النظام/الوضع الداكن/الوضع الفاتح.
-* **Supabase Real-time Backend**: يحتوي على مزود للعميل يتجنب أخطاء التهيئة الفارغة عند غياب المفاتيح البيئية، لضمان استقرار البناء في خوادم الـ CI ومزود بسياق [supabase-provider.tsx](saas-template-v3/src/components/providers/supabase-provider.tsx).
-* **تجاوب RTL مثالي**: يدعم مكتبة Tailwind CSS v3 مع لوحة ألوان HSL مخصصة ومكونات متوافقة مع shadcn/ui وتأثيرات حركة مدمجة عبر `tailwindcss-animate`.
-* **صفحة ترحيب تفاعلية**: صفحة [page.tsx](saas-template-v3/src/app/page.tsx) متألقة تدعم اللغتين (العربية والإنجليزية) بالكامل مع تحكم تفاعلي في المظهر واختبار الحالات.
-
 </div>
 
 ---
 
-<div dir="rtl" style="text-align: right; direction: rtl;">
+## 4. منهجية العمل وإدارة المخاطر (L0–L3 & AUDIT)
 
-## 5. دورة حياة تطوير الميزات (AI Agentic Workflow)
+يتم تصنيف المهام آلياً حسب مستوى **المخاطرة** وليس الحجم لضمان سرعة الـ Vibe Coding مع أمان تام:
 
-يسير تطوير الميزات البرمجية بالتعاون مع المساعد الذكي عبر مسارين لحماية كود المشروع:
+* **L0 (تافه):** تعديلات النصوص والألوان البسيطة — تنفيذ فوري وتحقق مباشر بلا تعقيد.
+* **L1 (موضعي):** إصلاح خلل محدد بدالة واحدة — مسار سريع وتعديل مع اختبار انحدار.
+* **L2 (ميزة):** مكونات جديدة، Endpoints، نماذج بيانات — المسار الخماسي الكامل وعزل الميزة في صومعة مستقلة (`src/features/<name>/index.ts`).
+* **L3 (كبير):** أنظمة جديدة وإعادة هيكلة شاملة — المسار الكامل مع خطة موجزة وتذاكر وموافقة.
+* **AUDIT (تدقيق):** مراجعة أمان وجودة — وضع للقراءة فقط وتقرير تشخيصي قبل أي لمس للكود.
+* **المخرجات غير البرمجية:** المستندات (Word, PDF) والعروض (PowerPoint) تتخطى بوابات الكود وتنتقل فوراً للمهارات المتخصصة عبر `skills-map.md`.
 
-### أ. المسار السريع (Fast Track) - للتعديلات البسيطة
-للتعديلات البصرية الطفيفة وإصلاح النصوص. يقوم المساعد بالتعديل المباشر وعمل Commit سريع للتمكن من التراجع في حال حدوث أي خلل.
-
-### ب. المسار الشامل (Full Workflow) - للميزات الكبرى
-ويتم تطبيقه على 3 مراحل متتالية:
-1. **التخطيط (Planning)**: إنشاء مسودة الخطة البرمجية وتحديد أدوات مراجعة الجودة والحراس المطلوبة (`clean-code-guard` لكود البزنس و `test-guard` للاختبارات).
-2. **التنفيذ والاختبار (Execution & Testing)**: بناء الأكواد والاختبارات، ثم تشغيل الحراس المحددين لمعالجة أي ثغرات خفية قبل تقديم العمل للمستخدم.
-3. **المراجعة والتحسين (Review & Refinement)**: تبسيط الكود وإعادة هيكلته بعد التأكد من نجاح عمله بالكامل.
-
-</div>
+> ⚠️ **قاعدة الرفع التلقائي:** أي مهمة تلمس (المصادقة، الصلاحيات/RLS، ترحيلات قواعد البيانات، الأسرار، المدفوعات، أو الاعتماديات) ترتفع تلقائياً إلى مستوى **L2 كحد أدنى** مهما صغر حجمها.
 
 ---
 
-<div dir="rtl" style="text-align: right; direction: rtl;">
+## 5. خطوات الإعداد والتشغيل السريع على جهاز جديد
 
-## 6. خطوات الإعداد والتشغيل السريع
-
-إذا كنت تقوم بتهيئة جهاز جديد أو بدء مشروع قائم:
-
-### 1. إعداد المتطلبات وتنزيل المستودع
-تأكد من تنزيل المستودع محلياً:
-</div>
-
-```bash
-git clone https://github.com/shorbah/SaaS.git
-cd SaaS
-```
-
-<div dir="rtl" style="text-align: right; direction: rtl;">
-
-### 2. تثبيت المهارات عالمياً
-لتفعيل حراس الجودة ومهارة الـ SaaS عالمياً في تطبيق Antigravity لديك، اتبع دليل التهيئة المفصل في **[new-device-setup.md](new-device-setup.md)** أو قم بتشغيل سكربت النسخ في PowerShell كمسؤول:
-</div>
-
-```powershell
-# نسخ وتفعيل كافة المهارات عالمياً في مجلد Antigravity
-$globalSkillsPath = "$env:USERPROFILE\.gemini\config\skills"
-if (-not (Test-Path $globalSkillsPath)) {
-    New-Item -ItemType Directory -Force -Path $globalSkillsPath
-}
-Copy-Item -Path ".\.agents\skills\*" -Destination $globalSkillsPath -Recurse -Force
-Copy-Item -Path ".\skills\*" -Destination $globalSkillsPath -Recurse -Force
-```
-
-<div dir="rtl" style="text-align: right; direction: rtl;">
-
-### 3. تهيئة مشروع قائم أو جديد
-عند تشغيل Antigravity على أي مشروع، يمكنك كتابة `/speckit-init` لإنشاء بيئة التطوير والتحقق الفوري من الملفات وتثبيت حراس الأمان.
-
-</div>
+لتثبيت المهارات عالمياً على أي جهاز جديد:
+1. اتبع الخطوات المؤتمتة في **[new-device-setup.md](new-device-setup.md)**.
+2. أو انسخ مهارة `master-foundation` إلى مجلد مهاراتك العالمي:
+   ```bash
+   git clone https://github.com/shorbah/SaaS.git
+   # نسخ المهارة لمجلد Antigravity العام:
+   cp -r SaaS/skills/master-foundation ~/.gemini/config/skills/master-foundation
+   ```
 
 ---
 
-<div dir="rtl" style="text-align: right; direction: rtl;">
+## 6. الخطوط الحمراء غير القابلة للكسر
 
-## 7. القواعد الصارمة للكتابة والتنسيق
-
-للحفاظ على جودة الأكواد والتصاميم، نلتزم دائماً بالقوانين التالية:
-* **RTL-First**: كتابة التصاميم والأكواد بالاعتماد على الخصائص المنطقية للـ CSS (مثل `ms-`, `pe-`, `start-`, `end-`) لدعم مثالي للغة العربية.
-* **shadcn-First Policy**: يُمنع بناء عناصر الواجهات الأساسية (أزرار، حقول إدخال، جداول) من الصفر، بل يتم استيراد مكونات `shadcn/ui` وتخصيصها لتفادي الأخطاء البرمجية.
-* **No AI Slop**: التدقيق البصري الدقيق للمكونات والمسافات وضمان أن الواجهات تظهر بشكل راقٍ وممتاز.
-* **Mobile-First**: كتابة كود Tailwind للجوال أولاً ثم إضافة كلاسات الشاشات الكبيرة (`md:`, `lg:`).
-* **Conventional Commits**: التزام بصيغة `type(scope): description` لجميع الـ Commits.
-
----
-
-## 8. الأقسام والميزات المضافة حديثاً (v4.2.0)
-
-تم ترقية إطار العمل وتحديث المستندات والقالب لتغطية الأقسام الاستراتيجية الهامة التالية:
-
-| القسم | المسمى والهدف | الوظيفة والمحتوى |
-|:------|:------|:------|
-| **§0.3** | **ملف تعريف المشروع (Project Profiles)** | تم نقله إلى بداية الدليل لضمان التأسيس التلقائي السليم وتخصيص القواعد وتجنب تعارض المتغيرات. |
-| **§4.3** | **ستاك الجوال (Mobile App)** | هيكلية برمجية لتطبيقات الجوال الأصيلة باستخدام React Native + Expo وExpo Router وNativeWind وتنسيقات RTL. |
-| **§5 & §6** | **قواعد TS وعزل الميزات** | تم نقل حظر any وهيكلية عزل الميزات إلى القسم 6 (قواعد الأمان) لتسري وتتطبق تلقائياً على كل البروفايلات بما فيها الجوال. |
-| **§6** | **منع تخزين البيانات الحساسة** | حظر كامل لتخزين كلمات المرور أو مفاتيح التشفير أو PII على العميل (Client Components/LocalStorage). |
-| **§9.1** | **قواعد السيو (SEO Essentials)** | فرض إعداد الـ Metadata بالكامل، Robots.ts و Sitemap.ts، وتوليد صور OG ديناميكياً. |
-| **§16** | **الفوترة والاشتراكات (Billing)** | قواعد تنفيذ الفوترة وتكامل Stripe باستخدام Route Handlers و Webhooks في Supabase بشكل آمن. |
-| **§17** | **الامتثال والخصوصية (PDPL)** | الامتثال الكامل لنظام حماية البيانات الشخصية السعودي وحماية الخصوصية في PostHog والنسخ الاحتياطي PITR و `pg_dump`. |
-
-للتفاصيل الكاملة، يرجى مراجعة ملف الماستر الأساسي **[master-foundation-v4.md](master-foundation-v4.md)**.
+1. **حظر تدمير البيانات (Zero Data Destruction):** منع تام لأوامر `DROP`, `TRUNCATE`, `HARD DELETE`, و `rm -rf` دون أمر كتابي صريح؛ والافتراضي دائماً هو الأرشفة والحذف المنطقي (`deleted_at`) أو تجهيل البيانات (Data Scrubbing) امتثالاً للخصوصية.
+2. **نظافة الأسرار:** التحقق من وجود مفاتيح `.env` دون قراءة أو طباعة قيمها سرياً لمنع تسريبها للنماذج.
+3. **المحتوى الخارجي بيانات وليس أوامر:** منع ثغرات الـ Prompt Injection من ملفات الـ README والروابط الخارجية.
+4. **الأمان في الخادم وقاعدة البيانات:** منع فرض الأمان في واجهات العرض الأمامية.
+5. **البرهان الواقعي على الإنجاز:** إرفاق مخرجات تشغيل البناء والاختبارات كدليل حقيقي قبل إعلان اكتمال المهمة.
 
 ---
 
 <p align="center">
-  صُنع بشغف لتطوير واجهات وتطبيقات ويب وجوال فائقة الجودة والذكاء 💻✨
+  صُنع بشغف لتمكين البرمجة السريعة والذكية بأعلى معايير الأمان والجودة الهندسية 💻✨
 </p>
 
 </div>
