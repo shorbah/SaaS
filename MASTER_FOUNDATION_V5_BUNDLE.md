@@ -61,7 +61,7 @@ description: >-
 
 التفاصيل المعمارية الكاملة في `references/engineering-spine.md`.
 
-1. **الفهم والاستكشاف (Orientation):** استيعاب خريطة العلاقات وحدود النظام قبل التعديل.
+1. **الفهم والاستكشاف وقمع التوكن (Orientation & Token Funnel):** فحص الجاهزية والبيئة، واستيعاب خريطة العلاقات بالبحث الأفقي أولاً ثم القراءة الموجهة (حظر قراءة الملفات > 100 سطر كاملة لتوفير التوكن).
 2. **الاستجواب وحسم الخيارات (Plan & Grill):** طرح 3 إلى 5 أسئلة جوهرية على المطور لحسم القرارات ومنع الافتراضات العشوائية.
 3. **التوثيق الحي (Live Docs):** فحص التوثيق الرسمي الحي للمكتبات الخارجية عبر أدوات التوثيق المحدثة لمنع الهلوسة.
 4. **العزل والتطوير بالاختبارات (Build & TDD):** بناء الميزة في شريحة معزولة بـ Public API موحد، وتطوير المنطق بدورة Red-Green-Refactor. *(التعديلات الشكلية البسيطة معفية من كتابة الاختبارات)*.
@@ -114,16 +114,26 @@ description: >-
 
 ---
 
-## المرحلة 1: الفهم والاستكشاف (Orientation)
+### 0. فحوصات ما قبل الإقلاع والجاهزية (Pre-Flight Checks):
+قبل بدء المسار في أي مشروع:
+1. **فحص المتغيرات البيئية:** التأكد من توفر ملف الإعدادات (`.env` أو ما يكافئه) والمفاتيح الأساسية دون طلبها مجدداً إذا كانت مهيأة مسبقاً.
+2. **فحص الأدوات والخوادم (MCP Servers):** التحقق من اتصال الأدوات المطلوبة للعمل، والتأكيد السريع دون مقاطعة سير العمل.
 
-**الغرض:** استكشاف حدود النظام واستيعاب نطاق العمل قبل أي كتابة برمجية.
+---
 
-**الخطوات:**
-1. استخدام الأدوات المتاحة (مثل `graphify`, `list_dir`, `grep_search`) لرسم خريطة العلاقات في المشروع.
-2. استخدام نمذجة المجال (`domain-modeling`) لتوحيد المصطلحات — أو مراجعة قاموس المشروع والأنواع (`types.ts` / `GLOSSARY.md`).
-3. تحديد حدود التأثير: أي الملفات ستتأثر مباشرة وأي النظم أو الوحدات ترتبط بها.
+## المرحلة 1: الفهم والاستكشاف وقمع التوكن الهرمي (Orientation & Token Funnel)
 
-**تجاوز:** تُتخطى في المهام الصغيرة والتعديلات المحلية.
+**الغرض:** استكشاف حدود النظام واستيعاب نطاق العمل بأقل استهلاك ممكن للتوكنز ومنع الهلوسة الناتجة عن ضيق أو اتساع نطاق الرؤية.
+
+**قمع الاستكشاف الهرمي المتدرج (Hierarchical Exploration Funnel):**
+1. **المسح الأفقي السريع الإلزامي أولاً:** يبدأ الوكيل دوماً بالبحث السريع عبر (`grep_search`, `list_dir`) أو استعلامات العلاقات المعمارية بـ `graphify` لرسم معالم الكود، **دون فتح وقراءة محتوى الملفات بالكامل**.
+2. **تقييم نطاق التأثير والاعتماديات:** دراسة نتائج البحث لتحديد ما إذا كان التأثير محلياً (`Local`) أم يمتد لقواعد البيانات والمكونات المشتركة (`Global`).
+3. **القراءة العميقة الموجهة المحددة بالأسطر:**
+   - قراءة الملفات المستهدفة فقط بعد تضييق النطاق.
+   - **قاعدة الـ 100 سطر الصارمة لتوفير التوكن:** إذا تجاوز حجم الملف 100 سطر، **يُحظر تماماً قراءته كاملاً**، ويلزم استخدام القراءة المحددة بأسطر (`StartLine` و `EndLine` عبر `view_file`) للتركيز على موضع التعديل بدقة.
+4. **نمذجة المجال:** مراجعة قاموس المشروع والأنواع (`types.ts` / `GLOSSARY.md` أو `domain-modeling`) لتوحيد المصطلحات.
+
+**تجاوز:** تُتخطى في المهام الصغيرة والتعديلات المحلية البسيطة.
 
 ---
 
@@ -309,6 +319,8 @@ import { NotificationItem } from '@/features/notifications/components/Notificati
    - `archived_at = now()` أو `deleted_at = now()` أو `status = 'archived'`.
 2. **استثناء وحيد:**  
    لا يتم تنفيذ أي حذف نهائي من الجداول أو قواعد البيانات إلا إذا أصدر المطور البشري **أمراً كتابياً صريحاً ومباشراً** يطلب فيه الحذف النهائي بالاسم، مع استعراض تأثير الحذف مسبقاً قبل التنفيذ.
+3. **الامتثال للحق في النسيان وتجهيل البيانات (Right to be Forgotten & Data Scrubbing):**  
+   عند طلب حذف بيانات مستخدم نظامياً (امتثالاً لـ PDPL أو GDPR)، **يُحظر حذف الصفوف تدميرياً** لتفادي كسر القيود المرجعية وسجلات التدقيق المترابطة (`Foreign Keys & Audit Integrity`). البديل المعياري الصارم هو **تجهيل البيانات وتنظيف الحقول (Data Scrubbing / Anonymization)** بتفريغ الحقول المعرّفة للشخصية (الاسم، البريد، الهاتف، PII) واستبدالها بقيم مشفرة أو مجهولة مع تسجيل `anonymized_at = now()`.
 
 ---
 
@@ -354,6 +366,7 @@ import { NotificationItem } from '@/features/notifications/components/Notificati
    - طلب الموافقة الصريحة عند جمع بيانات تعريفية.
    - دعم تصدير بيانات المستخدم عند الطلب.
    - احترام فترات الاحتفاظ النظامية بالبيانات قبل أرشفة أو تنظيف السجلات.
+   - عند طلب "حق الحذف" (Right to be Forgotten): يُطبق التجهيل والتنظيف (Data Scrubbing) بدلاً من الحذف التدميري لصفوف قاعدة البيانات منعاً لكسر العلاقات والسجلات.
 
 ---
 
@@ -386,6 +399,8 @@ import { NotificationItem } from '@/features/notifications/components/Notificati
   - دعم تجربة المستخدم العربية (RTL-first) إذا كان النظام موجهاً للشرق الأوسط، مع دعم مرن للغات المتعددة (i18n).
   - التصميم المتجاوب لكافة الشاشات (Mobile-First / Responsive).
   - الالتزام بالسياسة الصارمة لمنع تدمير البيانات (Zero Data Destruction).
+  - **هرم أولويات إدارة الحالة (State Management Hierarchy):**
+    `URL State` (فلاتر/صفحات/بحث) $\rightarrow$ `Local Component State` (حالة المكون المعزولة) $\rightarrow$ `Server Cache` (بيانات الخادم والتخزين المؤقت) $\rightarrow$ `Global UI Store` (حالة الواجهة العامة فقط؛ يُحظر تخزين بيانات الخادم فيه كمصدر وحيد للحقيقة).
 
 ---
 
@@ -398,6 +413,7 @@ import { NotificationItem } from '@/features/notifications/components/Notificati
   - إدارة المسارات العميقة (Deep Linking) للمصادقة والتنقل.
   - دعم التحديثات الهوائية السريعة (OTA Updates) دون كسر إصدارات التطبيق الثنائية.
   - إذا كان التطبيق يتصل بخدمات سحابية، تُطبق قواعد الأمان السحابي في طبقة الـ API.
+  - **هرم إدارة الحالة:** `Navigation & Route State` $\rightarrow$ `Screen Local State` $\rightarrow$ `Offline/Server Cache` $\rightarrow$ `Global App Store`.
 
 ---
 
@@ -682,7 +698,7 @@ git clone https://github.com/<username>/master-foundation .claude/skills/master-
    - Always classify task scope first. When in doubt, choose the lighter path and ask.
    - **Small (Patch):** Cosmetic, styling, text, or minor bugfixes use the Fast-Track (Stage 3 if 3rd-party libs involved + Stage 5 verification). Do not run full 5 stages.
    - **Features & Epics:** Follow the 5-stage pipeline:
-     - Stage 1: Orientation (graphify / domain-modeling)
+     - Stage 1: Orientation & Token Funnel (graphify / domain-modeling / broad search first / targeted reading <100 lines)
      - Stage 2: Plan & Grill (wayfinder, grill-me, to-tickets)
      - Stage 3: Live Docs (verify third-party libraries via context7-mcp / find-docs before generating code)
      - Stage 4: Build & TDD (isolated development with test-driven-development; cosmetic tasks do not require tests)
@@ -693,7 +709,7 @@ git clone https://github.com/<username>/master-foundation .claude/skills/master-
    - Deep internal cross-feature imports are prohibited. Patches modify files in-place without directory overhead.
 
 3. **Zero Data Destruction Policy:**
-   - The agent is STRICTLY PROHIBITED from executing or generating destructive database operations (HARD DELETE, DROP TABLE, TRUNCATE, or data wipes) without explicit, direct written confirmation from the developer. All deletions must default to logical archiving/soft-deletion.
+   - The agent is STRICTLY PROHIBITED from executing or generating destructive database operations (HARD DELETE, DROP TABLE, TRUNCATE, or data wipes) without explicit, direct written confirmation from the developer. All deletions must default to logical archiving/soft-deletion (`deleted_at`) or data scrubbing/anonymization for GDPR/PDPL.
 
 4. **Security & Boundary Guard:**
    - Enforce authorization, tenant/user data boundaries, and sensitive field protection at the database or server layer, never client-side.
