@@ -5,12 +5,14 @@
 
 | المهمة | المهارة المقترحة | البديل إن لم تتوفر |
 |:---|:---|:---|
-| تحديد النطاق والأسئلة | `grill-me` / `speckit-clarify` | 3–5 أسئلة مع افتراضات مقترحة (`workflow.md` §2) |
-| مواصفات وتخطيط SDD (الأساسي) | `speckit` (`speckit-specify` / `speckit-plan`) | كتابة ملف مواصفات وخطة في `docs/plans/` |
-| بوابة اعتماد ومراجعة الخطط (إلزامي) | `plannotator` (`plannotator annotate --gate --json`) | عرض الخطة كـ Artifact وطلب موافقة كتابية صريحة |
+| استكشاف أولي وتحديد النطاق | `grill-me` (سقف 3 أسئلة) | 1–3 أسئلة مفصلية مع افتراضات مقترحة |
+| صياغة المواصفات (SDD) | `speckit-specify` | كتابة مسودة المتطلبات في `spec.md` يدوياً |
+| استيضاح المواصفة وسد الفجوات | `speckit-clarify` | أسئلة مركزة مبنية على `spec.md` في المحادثة |
+| صياغة الخطة والتصميم | `speckit-plan` (أو SDD-Lite) | كتابة خطة في `docs/plans/<name>.md` |
+| بوابة اعتماد الخطة (ميكانيكية) | `plannotator` (`--gate --json --result-file APPROVAL.json`) | عرض الخطة كـ Artifact وطلب موافقة كتابية صريحة |
 | مراجعة الفروقات الكودية بصرياً | `plannotator` (`plannotator review`) | `git diff` |
-| تفكيك عمل كبير | `speckit-tasks` / `to-tickets` | قائمة مهام صغيرة مستقلة في `docs/plans/` |
-| تخطيط استراتيجي (L3) | `wayfinder` / `speckit-plan` | ملف خطة: الهدف، النطاق، المخاطر، المراحل، التراجع |
+| تفكيك المهام المنضبطة (TDD) | `speckit-tasks` | قائمة مهام مرتبة تسبق فيها الاختبارات الكود |
+| تنفيذ المهام البرمجية | `speckit-implement` | تطبيق دورة Red-Green-Refactor يدوياً |
 | رسم علاقات الكود | `graphify` | grep + قراءة الاستيرادات يدوياً |
 | نمذجة المجال والمصطلحات | `domain-modeling` | قراءة `types`/`GLOSSARY.md` واتباعها |
 | توثيق المكتبات الحي | `context7-mcp` / `find-docs` | التوثيق الرسمي للإصدار المثبّت عبر الويب |
