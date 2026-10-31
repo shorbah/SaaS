@@ -1,4 +1,4 @@
-# Master Foundation v6.1 — التثبيت والتحقق
+# Master Foundation v6.2 — التثبيت والتحقق
 
 ## التثبيت
 
