@@ -2,11 +2,6 @@ name: Master Foundation Approval Gate Check
 
 on:
   pull_request:
-    paths:
-      - 'specs/**'
-      - 'scripts/check-approval.mjs'
-      - 'scripts/test-check-approval.mjs'
-      - '.github/workflows/check-approval.yml'
   workflow_dispatch:
 
 jobs:
