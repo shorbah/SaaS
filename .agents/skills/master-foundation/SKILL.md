@@ -14,7 +14,7 @@ description: >-
   or throwaway scratch scripts.
   الكلمات: بناء تطبيق، ميزة، API، قاعدة بيانات، صلاحيات، تدقيق أمني، هوية بصرية، خطة برمجية، تصميم معماري، مواصفات ميزة، spec، speckit، architecture plan.
 metadata:
-  version: 6.3.0
+  version: 6.4.0
 ---
 
 # Master Foundation
