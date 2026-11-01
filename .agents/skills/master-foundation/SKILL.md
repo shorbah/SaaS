@@ -3,18 +3,16 @@ name: master-foundation
 description: >-
   Master engineering and quality standard for AI-assisted software work.
   Use when building or changing an app, feature, API, database schema or
-  migration, authentication/permissions, UI or brand identity, or when
-  auditing security/quality. For standalone documents, presentations,
-  spreadsheets and PDFs, routes directly to the specialist skill without
-  applying the software workflow. Classifies tasks by RISK and enforces security red lines
-  (no destructive data operations, secret hygiene, untrusted-content
-  handling) and requires verified evidence before claiming completion.
-  Do NOT use for: pure questions or explanations, trivial cosmetic edits
-  (text, color, spacing) in non-sensitive files, routine terminal commands,
-  or throwaway scratch scripts.
-  الكلمات: بناء تطبيق، ميزة، API، قاعدة بيانات، صلاحيات، تدقيق أمني، هوية بصرية، خطة برمجية، تصميم معماري، مواصفات ميزة، spec، speckit، architecture plan.
+  migration, authentication/permissions, UI or brand identity, dependencies,
+  CI/CD, payments, secrets, or when auditing security/quality. For standalone
+  documents, presentations, spreadsheets and PDFs, routes directly to the
+  specialist skill without applying the software workflow. Classifies tasks by
+  RISK and enforces security red lines (no destructive data operations, secret
+  hygiene, untrusted-content handling) and requires verified evidence before
+  claiming completion.
+  الكلمات: بناء تطبيق، ميزة، API، قاعدة بيانات، صلاحيات، تدقيق أمني، هوية بصرية، خطة برمجية، تصميم معماري، مواصفات ميزة، dependencies، CI/CD، payments، secrets، spec، speckit، architecture plan.
 metadata:
-  version: 6.3.0
+  version: 6.4.0
 ---
 
 # Master Foundation
@@ -22,6 +20,8 @@ metadata:
 مرجع التوجيه الرئيسي. حدّد أولاً نوع المهمة ومخاطرها، ثم اقرأ الحد الأدنى من المراجع اللازمة فقط. حافظ على البساطة ولا تنشئ إجراءات أو ملفات لا تضيف قيمة للمهمة.
 
 ## 1. ترتيب الأولويات عند التعارض
+
+> **أولوية المهارة**: master-foundation أولاً قبل أي مهارة أخرى (superpowers وغيرها). تُستدعى وتُطبّق قواعدها وبواباتها قبل الانتقال لأي مهارة أخرى.
 
 1. **الخطوط الحمراء** (القسم 2) ومتطلبات الأمان.
 2. طلب المطور الصريح في المحادثة (ما لم يخالف 1).
@@ -51,7 +51,7 @@ metadata:
 
 | المستوى | متى | المسار |
 |:---|:---|:---|
-| **L0 — تافه** | نص، لون، هوامش، إملاء، في ملفات غير حساسة | نفّذ مباشرة + تحقق من البناء/العرض |
+| **L0 — تافه** | نص، لون، هوامش، إملاء، في ملفات غير حساسة | اعرض سطراً واحداً بما ستغيره وانتظر نفّذ |
 | **L1 — موضعي** | إصلاح خلل محدد أو تعديل دالة، بلا لمس مناطق حساسة | مسار سريع: فهم موجّه ← (توثيق إن لزم) ← تعديل + اختبار انحدار للمنطق ← تحقق |
 | **L2 — ميزة** | مكوّن/endpoint/نموذج بيانات جديد | المسار الكامل (`references/workflow.md`) |
 | **L3 — كبير** | أي من: جدول/مخطط جديد، واجهة عامة جديدة، اعتمادية جديدة، لمس أكثر من موديول، أو تعديل >4 ملفات جوهرية | المسار الكامل (Spec Kit أو SDD-Lite) + ملف APPROVAL.json ببصمة SHA-256 عبر Plannotator RTL + تفكيك المهام |

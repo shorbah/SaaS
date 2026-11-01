@@ -1,0 +1,31 @@
+#!/bin/sh
+# Master Foundation Mechanical Gate - Pre-commit Hook
+
+# 1. Run regression tests for gate itself
+node scripts/test-check-approval.mjs
+if [ $? -ne 0 ]; then
+  echo "\n[ERROR] Commit blocked: Gate regression tests failed!\n"
+  exit 1
+fi
+
+# 2. Check that every touched spec folder has an APPROVAL.json record
+STAGED_SPECS=$(git diff --cached --name-only -- 'specs/**' | awk -F'/' '$1 == "specs" && NF >= 3 {print $1"/"$2}' | sort -u)
+for dir in $STAGED_SPECS; do
+  if [ -d "$dir" ] && [ ! -f "$dir/APPROVAL.json" ]; then
+    echo "\n[ERROR] Commit blocked by Master Foundation Gate:"
+    echo "Spec directory '$dir' was touched without an APPROVAL.json gate record!\n"
+    exit 1
+  fi
+done
+
+# 3. Verify approvals, decisions, and anti-drift
+node scripts/check-approval.mjs
+RESULT=$?
+if [ $RESULT -ne 0 ]; then
+  echo "\n[ERROR] Commit blocked by Master Foundation Gate:"
+  echo "Approval hash mismatch, unapproved decision, or drift detected in specs."
+  echo "Run 'node scripts/check-approval.mjs' for details.\n"
+  exit 1
+fi
+
+exit 0

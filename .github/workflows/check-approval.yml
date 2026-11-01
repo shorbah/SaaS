@@ -1,0 +1,40 @@
+name: Master Foundation Approval Gate Check
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check-approval:
+    name: Verify Spec Approval Integrity & Anti-Drift
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Regression tests for the gate itself
+        run: node scripts/test-check-approval.mjs
+
+      - name: Verify approvals and anti-drift
+        run: node scripts/check-approval.mjs
+
+      - name: Every touched spec has an APPROVAL.json
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+        run: |
+          CHANGED_SPECS=$(git diff --name-only "origin/$BASE_REF"...HEAD -- 'specs/**' \
+            | awk -F'/' '$1 == "specs" && NF >= 3 {print $1"/"$2}' | sort -u)
+          for dir in $CHANGED_SPECS; do
+            if [ -d "$dir" ] && [ ! -f "$dir/APPROVAL.json" ]; then
+              echo "[ERROR] Spec directory '$dir' was touched without an APPROVAL.json gate record!"
+              exit 1
+            fi
+          done
+          echo "All touched specs have an APPROVAL.json gate record."
