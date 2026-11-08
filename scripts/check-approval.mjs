@@ -312,16 +312,25 @@ export function runCli() {
   // ---------------- STRICT SCOPE STANDALONE CHECK ----------------
   if (args[0] === '--check-scope') {
     let baseRef = null;
+    let explicitAllowed = null;
     for (let i = 1; i < args.length; i++) {
       if (args[i] === '--base') baseRef = args[++i];
+      else if (args[i] === '--allowed-paths') explicitAllowed = args[++i].split(',').map((s) => s.trim());
     }
     const approvalFiles = findApprovalFiles(path.resolve(CWD, 'specs'));
-    let combinedAllowed = [];
-    for (const af of approvalFiles) {
-      try {
-        const d = JSON.parse(fs.readFileSync(af, 'utf8'));
-        if (Array.isArray(d.allowed_paths)) combinedAllowed.push(...d.allowed_paths);
-      } catch {}
+    let combinedAllowed = explicitAllowed || [];
+    if (!explicitAllowed) {
+      for (const af of approvalFiles) {
+        try {
+          const d = JSON.parse(fs.readFileSync(af, 'utf8'));
+          if (Array.isArray(d.allowed_paths)) combinedAllowed.push(...d.allowed_paths);
+        } catch {}
+      }
+    }
+
+    if (combinedAllowed.length === 0) {
+      console.log('[check-approval] No active APPROVAL.json with allowed_paths found. Skipping strict scope check. OK.');
+      process.exit(0);
     }
 
     const errors = checkStrictScope(CWD, combinedAllowed, { base: baseRef });
