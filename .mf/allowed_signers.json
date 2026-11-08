@@ -1,0 +1,7 @@
+{
+  "shorbah": {
+    "name": "Shorbah (Lead Architect)",
+    "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAihQQ4t63cjJuw6rIckksYpW7iRJ9974ZS7s4l12vOwc=\n-----END PUBLIC KEY-----\n",
+    "alg": "ed25519"
+  }
+}

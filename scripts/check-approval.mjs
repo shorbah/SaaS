@@ -462,7 +462,11 @@ export function runCli() {
 
     // Digital signature calculation if key provided or present
     if (signKey) {
-      const signature = signCanonical(approvalData, signKey, signAlg);
+      let resolvedKey = signKey;
+      if (fs.existsSync(signKey)) {
+        resolvedKey = fs.readFileSync(signKey, 'utf8');
+      }
+      const signature = signCanonical(approvalData, resolvedKey, signAlg);
       approvalData.signature = {
         alg: signAlg,
         value: signature
