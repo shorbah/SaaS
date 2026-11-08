@@ -19,11 +19,43 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Regression tests for the gate itself
+      - name: Verify and inspect actual merge tree (Anti-TOCTOU)
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+        run: |
+          echo "Fetching target base branch: origin/$BASE_REF"
+          git fetch origin "$BASE_REF" --depth=50 || true
+          MERGE_BASE=$(git merge-base "origin/$BASE_REF" HEAD || git rev-parse HEAD~1 || git rev-parse HEAD)
+          echo "Merge base commit: $MERGE_BASE"
+          echo "Current HEAD commit (Merge Tree): $(git rev-parse HEAD)"
+
+      - name: Regression tests for gate and v6.5 specs (EVAL-33..EVAL-48)
         run: node scripts/test-check-approval.mjs
 
-      - name: Verify approvals and anti-drift
+      - name: Verify approvals, decisions, and anti-drift
         run: node scripts/check-approval.mjs
+
+      - name: Verify Strict Scope on actual merge tree
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+        run: |
+          node scripts/check-approval.mjs --check-scope --base "origin/$BASE_REF"
+
+      - name: Check for disallowed symlinks and path traversals in merge tree
+        env:
+          BASE_REF: ${{ github.base_ref || 'main' }}
+        run: |
+          CHANGED_FILES=$(git diff --name-only "origin/$BASE_REF"...HEAD || true)
+          for file in $CHANGED_FILES; do
+            if [ -L "$file" ]; then
+              TARGET=$(readlink -f "$file" || realpath "$file")
+              echo "Symlink detected: $file -> $TARGET"
+              case "$TARGET" in
+                "$PWD"*) echo "Symlink target is inside repository root." ;;
+                *) echo "[ERROR] Symlink $file targets outside workspace: $TARGET" && exit 1 ;;
+              esac
+            fi
+          done
 
       - name: Every touched spec has an APPROVAL.json
         env:
