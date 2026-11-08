@@ -10,7 +10,7 @@ description: >-
   RISK and enforces security red lines (no destructive data operations, secret
   hygiene, untrusted-content handling) and requires verified evidence before
   claiming completion.
-  الكلمات: بناء تطبيق، ميزة، API، قاعدة بيانات، صلاحيات، تدقيق أمني، هوية بصرية، خطة برمجية، تصميم معماري، مواصفات ميزة، dependencies، CI/CD، payments، secrets، spec، speckit، architecture plan.
+  الكلمات: بناء تطبيق، ميزة، API، قاعدة بيانات، صلاحيات، تدقيق أمني، هوية بصرية، خطة برمجية، تصميم معماري، مواصفات ميزة، dependencies، CI/CD، payments، secrets، spec، speckit، architecture plan، حراسة الاعتماد، approval gate، بوابة مشفرة، plannotator، تشفير الخطط، anti-drift.
 metadata:
   version: 6.5.0
 ---
