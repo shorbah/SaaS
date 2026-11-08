@@ -38,7 +38,7 @@
 
 ## 1. المكونات الأساسية للمستودع
 
-* 📄 **[MASTER_FOUNDATION_V6_4_BUNDLE.md](MASTER_FOUNDATION_V6_4_BUNDLE.md)**: الحزمة الشاملة للإصدار v6.4 المفككة إلى موجه مسارات (`SKILL.md`) ومراجع تخصصية تسري تدريجياً لتقليل استهلاك التوكنز.
+* 📄 **[MASTER_FOUNDATION_V6_5_BUNDLE.md](MASTER_FOUNDATION_V6_5_BUNDLE.md)**: الحزمة الشاملة للإصدار v6.5 المفككة إلى موجه مسارات (`SKILL.md`) ومراجع تخصصية تسري تدريجياً لتقليل استهلاك التوكنز.
 * 📄 **[new-device-setup.md](new-device-setup.md)**: الدليل الشامل لتهيئة وإعداد أي جهاز جديد للعمل مع **Antigravity** و **Spec Kit** وتفعيل كافة المهارات عالمياً.
 * 📄 **[AGENTS.md](AGENTS.md)**: كتلة التوجيه الإلزامية الخفيفة التي تحكم سلوك الوكلاء في جذر المشروع.
 
@@ -50,7 +50,7 @@
 
 | المهارة | المسار المحلي | الوصف والوظيفة |
 | :--- | :--- | :--- |
-| **Master Foundation (v6.4)** | [`skills/master-foundation`](skills/master-foundation/SKILL.md) | المعيار التشغيلي الموحد، توجيه المخاطر، بوابات الجودة، وبوابة الاعتماد المشفرة ومنع تدمير البيانات. |
+| **Master Foundation (v6.5)** | [`skills/master-foundation`](skills/master-foundation/SKILL.md) | المعيار التشغيلي الموحد، توجيه المخاطر، بوابات الجودة، وبوابة الاعتماد المشفرة ومنع تدمير البيانات. |
 | **Frontend Design** | [`skills/frontend-design`](skills/frontend-design/SKILL.md) | إرشادات بناء واجهات مستخدم احترافية راقية خالية من الابتذال (Anti-AI-Slop). |
 | **Clean Code Guard** | [`skills/clean-code-guard`](skills/clean-code-guard/SKILL.md) | فحص كود الإنتاج لضمان تطبيق مبادئ SOLID, DRY, KISS, YAGNI ومنع التعقيد الزائد. |
 | **Test Guard** | [`skills/test-guard`](skills/test-guard/SKILL.md) | مراجعة الاختبارات لمنع الاختبارات الصورية وضمان فاعلية الـ Assertions. |

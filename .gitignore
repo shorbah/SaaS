@@ -1,2 +1,3 @@
-.mf/
+.mf/*
+!.mf/allowed_signers.json
 
