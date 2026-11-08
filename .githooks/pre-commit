@@ -18,8 +18,8 @@ for dir in $STAGED_SPECS; do
   fi
 done
 
-# 3. Verify approvals, decisions, and anti-drift
-node scripts/check-approval.mjs
+# 3. Verify approvals, decisions, strict scope, and anti-drift
+node scripts/check-approval.mjs --strict-scope
 RESULT=$?
 if [ $RESULT -ne 0 ]; then
   echo "\n[ERROR] Commit blocked by Master Foundation Gate:"

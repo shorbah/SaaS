@@ -34,7 +34,11 @@ export const FORBIDDEN_SECRET_PATTERNS = [
   '**/*.pem',
   '**/*.key',
   '**/id_rsa',
+  '**/id_rsa*',
   '**/id_ed25519',
+  '**/id_ed25519*',
+  '**/.mf/id_*',
+  '~/.mf/**',
   '**/credentials.json'
 ];
 
@@ -273,6 +277,50 @@ export function checkStrictScope(root = CWD, allowedPaths = [], options = {}) {
   return errors;
 }
 
+/**
+ * Standalone Guardrail Check: Ensures protected infrastructure files are never modified without authorization
+ * Runs regardless of whether any APPROVAL.json specs are active.
+ */
+export function checkGuardrailsOnly(root = CWD, options = {}) {
+  const errors = [];
+  const allowGuardrails = options.allowGuardrails || process.env.ALLOW_GUARDRAILS === 'true';
+  if (allowGuardrails) return errors;
+
+  const changedFiles = new Set(options.files || []);
+
+  if (options.checkGit !== false && fs.existsSync(path.join(root, '.git'))) {
+    try {
+      if (options.base) {
+        const out = execSync(`git diff --name-only ${options.base}...HEAD`, { cwd: root, encoding: 'utf8' });
+        out.split('\n').map((s) => s.trim()).filter(Boolean).forEach((f) => changedFiles.add(f));
+      } else {
+        const diffCached = execSync('git diff --cached --name-only', { cwd: root, encoding: 'utf8' });
+        diffCached.split('\n').map((s) => s.trim()).filter(Boolean).forEach((f) => changedFiles.add(f));
+        const diffWorking = execSync('git diff --name-only HEAD', { cwd: root, encoding: 'utf8' });
+        diffWorking.split('\n').map((s) => s.trim()).filter(Boolean).forEach((f) => changedFiles.add(f));
+      }
+
+      const untracked = execSync('git status --porcelain -uall', { cwd: root, encoding: 'utf8' });
+      untracked.split('\n').map((s) => s.trim()).filter(Boolean).forEach((line) => {
+        if (line.startsWith('??')) {
+          changedFiles.add(line.slice(3).trim());
+        }
+      });
+    } catch {}
+  }
+
+  for (const item of changedFiles) {
+    const norm = item.replace(/\\/g, '/');
+    if (matchAnyGlob(GUARDRAIL_PATTERNS, norm)) {
+      if (!options.allowGuardrails) {
+        errors.push(`Unauthorized modification to guardrail file: ${norm}`);
+      }
+    }
+  }
+
+  return errors;
+}
+
 function walk(dir, predicate) {
   let out = [];
   if (!fs.existsSync(dir)) return out;
@@ -342,6 +390,7 @@ export function runCli() {
       fs.writeFileSync(pubPath, pubPem);
       console.log(`[check-approval] Generated new Ed25519 key pair.`);
       console.log(`[check-approval] Private key saved to: ${privPath}`);
+      console.log(`[check-approval] SECURITY NOTICE: Never commit private keys. Keep ~/.mf/id_ed25519 strictly on your authorized device.`);
     }
 
     // Register public key in .mf/allowed_signers.json
@@ -390,17 +439,35 @@ export function runCli() {
     }
     const approvalFiles = findApprovalFiles(path.resolve(CWD, 'specs'));
     let combinedAllowed = explicitAllowed || [];
+    const now = new Date();
     if (!explicitAllowed) {
       for (const af of approvalFiles) {
         try {
           const d = JSON.parse(fs.readFileSync(af, 'utf8'));
+          // Exclude expired approvals
+          if (d.expires_at) {
+            const expDate = new Date(d.expires_at);
+            if (!isNaN(expDate.getTime()) && expDate < now) {
+              console.warn(`[check-approval] WARNING: Skipping expired approval in ${rel(af)} (expired at ${d.expires_at})`);
+              continue;
+            }
+          }
           if (Array.isArray(d.allowed_paths)) combinedAllowed.push(...d.allowed_paths);
         } catch {}
       }
     }
 
     if (combinedAllowed.length === 0) {
-      console.log('[check-approval] No active APPROVAL.json with allowed_paths found. Skipping strict scope check. OK.');
+      // Even without active APPROVAL.json, GUARDRAIL_PATTERNS must NEVER be modified unauthorized!
+      const allowGuardrails = args.includes('--allow-guardrails') || process.env.ALLOW_GUARDRAILS === 'true';
+      const guardrailErrors = checkGuardrailsOnly(CWD, { base: baseRef, allowGuardrails });
+      if (guardrailErrors.length > 0) {
+        console.error('[check-approval] GUARDRAIL VIOLATION DETECTED:');
+        guardrailErrors.forEach((e) => console.error(`  - ${e}`));
+        console.error('To authorize changes to guardrail files, create an approved spec or pass --allow-guardrails.');
+        process.exit(1);
+      }
+      console.log('[check-approval] No active APPROVAL.json with allowed_paths found. Guardrails clean. OK.');
       process.exit(0);
     }
 
@@ -580,7 +647,17 @@ export function runCli() {
   }
 
   if (targets.length === 0) {
-    console.log('[check-approval] No APPROVAL.json files found to check. OK.');
+    if (args.includes('--strict-scope') || process.env.STRICT_SCOPE_CHECK !== 'false') {
+      const allowGuardrails = args.includes('--allow-guardrails') || process.env.ALLOW_GUARDRAILS === 'true';
+      const guardrailErrors = checkGuardrailsOnly(CWD, { allowGuardrails });
+      if (guardrailErrors.length > 0) {
+        console.error('[check-approval] GUARDRAIL VIOLATION DETECTED:');
+        guardrailErrors.forEach((e) => console.error(`  - ${e}`));
+        console.error('To authorize changes to guardrail files, create an approved spec or pass --allow-guardrails.');
+        process.exit(1);
+      }
+    }
+    console.log('[check-approval] No APPROVAL.json files found to check. Guardrails clean. OK.');
     process.exit(0);
   }
 
@@ -626,7 +703,7 @@ export function runCli() {
       } catch {
         expectedRepo = path.basename(CWD);
       }
-      if (expectedRepo && data.repository_id !== expectedRepo && process.env.STRICT_REPO_CHECK === 'true') {
+      if (expectedRepo && data.repository_id !== expectedRepo && process.env.STRICT_REPO_CHECK !== 'false') {
         console.error(
           `[check-approval] REPOSITORY MISMATCH: ${relApproval} issued for repository "${data.repository_id}", current is "${expectedRepo}".`
         );
@@ -636,7 +713,7 @@ export function runCli() {
     }
 
     // 4. Base commit check in git history (EVAL-37, EVAL-39)
-    if (data.base_commit && fs.existsSync(path.join(CWD, '.git')) && process.env.STRICT_BASE_CHECK === 'true') {
+    if (data.base_commit && fs.existsSync(path.join(CWD, '.git')) && process.env.STRICT_BASE_CHECK !== 'false') {
       try {
         execSync(`git cat-file -e ${data.base_commit}^{commit}`, { cwd: CWD, stdio: 'ignore' });
       } catch {
@@ -675,15 +752,12 @@ export function runCli() {
           continue;
         }
         console.log(`  [OK] Valid cryptographic signature verified for approver "${approver}".`);
-      } else if (sigObj.publicKey) {
-        // Fallback: self-contained public key verification
-        const isValid = verifyCanonical(data, sigObj.value, sigObj.publicKey, sigObj.alg || 'ed25519');
-        if (!isValid) {
-          console.error(`[check-approval] INVALID SIGNATURE in ${relApproval}.`);
-          hasFailure = true;
-          continue;
-        }
-        console.log(`  [OK] Valid cryptographic signature verified.`);
+      } else {
+        console.error(
+          `[check-approval] NO TRUSTED SIGNERS CONFIGURED: ${relApproval} carries a signature, but no allowed signers are registered in .mf/allowed_signers.json or MF_ALLOWED_SIGNERS.`
+        );
+        hasFailure = true;
+        continue;
       }
     }
 
@@ -733,7 +807,7 @@ export function runCli() {
     }
 
     // 8. Strict Scope check if allowed_paths specified
-    if (data.allowed_paths && (args.includes('--strict-scope') || process.env.STRICT_SCOPE_CHECK === 'true')) {
+    if (data.allowed_paths && (args.includes('--strict-scope') || process.env.STRICT_SCOPE_CHECK !== 'false')) {
       const scopeErrors = checkStrictScope(CWD, data.allowed_paths);
       if (scopeErrors.length > 0) {
         console.error(`[check-approval] SCOPE VIOLATIONS for ${relApproval}:`);
