@@ -9,6 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import os from 'node:os';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -297,6 +298,76 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToP
 
 
 export function runCli() {
+  // ---------------- GENERATE KEY HELPER ----------------
+  // node scripts/check-approval.mjs --generate-key [--id <signer_id>] [--name <display_name>] [--force]
+  if (args[0] === '--generate-key') {
+    let signerId = null;
+    let signerName = null;
+    let force = false;
+
+    for (let i = 1; i < args.length; i++) {
+      if (args[i] === '--id') signerId = args[++i];
+      else if (args[i] === '--name') signerName = args[++i];
+      else if (args[i] === '--force') force = true;
+    }
+
+    if (!signerId) {
+      try {
+        const gitUser = execSync('git config user.name', { cwd: CWD, encoding: 'utf8' }).trim();
+        signerId = gitUser.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
+      } catch {}
+      signerId = signerId || 'lead_dev';
+    }
+
+    signerName = signerName || `${signerId} (Authorized Signer)`;
+
+    const userMfDir = path.join(os.homedir(), '.mf');
+    if (!fs.existsSync(userMfDir)) fs.mkdirSync(userMfDir, { recursive: true });
+
+    const privPath = path.join(userMfDir, 'id_ed25519');
+    const pubPath = path.join(userMfDir, 'id_ed25519.pub');
+
+    if (fs.existsSync(privPath) && !force) {
+      console.log(`[check-approval] Existing private key found at: ${privPath}`);
+      if (!fs.existsSync(pubPath)) {
+        console.error('[check-approval] Missing corresponding public key.');
+        process.exit(1);
+      }
+    } else {
+      const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
+      const privPem = privateKey.export({ type: 'pkcs8', format: 'pem' });
+      const pubPem = publicKey.export({ type: 'spki', format: 'pem' });
+
+      fs.writeFileSync(privPath, privPem, { mode: 0o600 });
+      fs.writeFileSync(pubPath, pubPem);
+      console.log(`[check-approval] Generated new Ed25519 key pair.`);
+      console.log(`[check-approval] Private key saved to: ${privPath}`);
+    }
+
+    // Register public key in .mf/allowed_signers.json
+    const repoMfDir = path.join(CWD, '.mf');
+    if (!fs.existsSync(repoMfDir)) fs.mkdirSync(repoMfDir, { recursive: true });
+
+    const signersPath = path.join(repoMfDir, 'allowed_signers.json');
+    let signersData = {};
+    if (fs.existsSync(signersPath)) {
+      try {
+        signersData = JSON.parse(fs.readFileSync(signersPath, 'utf8'));
+      } catch {}
+    }
+
+    const pubPem = fs.readFileSync(pubPath, 'utf8');
+    signersData[signerId] = {
+      name: signerName,
+      publicKey: pubPem,
+      alg: 'ed25519'
+    };
+
+    fs.writeFileSync(signersPath, JSON.stringify(signersData, null, 2) + '\n', 'utf8');
+    console.log(`[check-approval] Signer "${signerId}" registered in: .mf/allowed_signers.json`);
+    process.exit(0);
+  }
+
   // ---------------- CANONICALIZE HELPER ----------------
   if (args[0] === '--canonicalize') {
     const target = args[1];
