@@ -1,0 +1,46 @@
+{
+  "decision": "approved",
+  "allowed_paths": [
+    "scripts/check-approval.mjs",
+    "scripts/test-check-approval.mjs",
+    "scripts/generate-bundle.mjs",
+    "scripts/setup-device.ps1",
+    ".githooks/pre-commit",
+    ".github/workflows/check-approval.yml",
+    ".github/CODEOWNERS",
+    ".agents/skills/master-foundation/**",
+    "skills/master-foundation/**",
+    "AGENTS.md",
+    "CLAUDE.md",
+    ".cursorrules",
+    ".windsurfrules",
+    ".cursor/rules/master-foundation.mdc",
+    ".github/copilot-instructions.md",
+    "README.md",
+    "MASTER_FOUNDATION_V6_5_BUNDLE.md",
+    "specs/mf-v6.5.1/**"
+  ],
+  "approval_id": "ee19a3bc-3769-4936-bded-8e6615e3f881",
+  "approver_id": "shorbah",
+  "repository_id": "SaaS",
+  "environment": "development",
+  "base_commit": "72383f4729fcbb16183865ebb1d525d9e10cbfee",
+  "allow_guardrails": true,
+  "approved_at": "2026-11-21T09:49:06.030Z",
+  "expires_at": "2026-11-28T09:49:06.030Z",
+  "spec_hashes": {
+    "specs/mf-v6.5.1/spec.md": "b933a95709c3ffadf29a09c22a524d5ae75206702d0300f602cd6c9d2b2437f9",
+    "specs/mf-v6.5.1/plan.md": "506a8ef972fb3dbe2697309f97df23cee70648c689e4b4a05e3b9b16d02994af",
+    "specs/mf-v6.5.1/tasks.md": "8f7f056fda794519dc1f1a52c96e8633aa4d01fc098391716fab1e2470c903dc"
+  },
+  "files": {
+    "specs/mf-v6.5.1/spec.md": "b933a95709c3ffadf29a09c22a524d5ae75206702d0300f602cd6c9d2b2437f9",
+    "specs/mf-v6.5.1/plan.md": "506a8ef972fb3dbe2697309f97df23cee70648c689e4b4a05e3b9b16d02994af",
+    "specs/mf-v6.5.1/tasks.md": "8f7f056fda794519dc1f1a52c96e8633aa4d01fc098391716fab1e2470c903dc"
+  },
+  "sealedAt": "2026-11-21T09:49:06.030Z",
+  "signature": {
+    "alg": "ed25519",
+    "value": "2e3194c1b80ef82ae716a3af148eb5d94ce1457b47e5d253aa43f2fdd191760b79675eb58b47714191676d092e8bf58d4229812733a187e6635033fb053eff0f"
+  }
+}

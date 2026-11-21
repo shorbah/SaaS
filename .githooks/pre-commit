@@ -1,5 +1,5 @@
 #!/bin/sh
-# Master Foundation Mechanical Gate - Pre-commit Hook
+# Master Foundation Mechanical Gate - Pre-commit Hook (v6.5.1)
 
 # 1. Run regression tests for gate itself
 node scripts/test-check-approval.mjs
@@ -9,7 +9,10 @@ if [ $? -ne 0 ]; then
 fi
 
 # 2. Check that every touched spec folder has an APPROVAL.json record
-STAGED_SPECS=$(git diff --cached --name-only -- 'specs/**' | awk -F'/' '$1 == "specs" && NF >= 3 {print $1"/"$2}' | sort -u)
+STAGED_SPECS=$(git diff --cached --name-only -- 'specs/**' | awk -F'/' '
+  $1 == "specs" && $2 == "archive" && NF >= 4 {print $1"/"$2"/"$3; next}
+  $1 == "specs" && $2 != "archive" && NF >= 3 {print $1"/"$2}
+' | sort -u)
 for dir in $STAGED_SPECS; do
   if [ -d "$dir" ] && [ ! -f "$dir/APPROVAL.json" ]; then
     echo "\n[ERROR] Commit blocked by Master Foundation Gate:"
@@ -18,13 +21,13 @@ for dir in $STAGED_SPECS; do
   fi
 done
 
-# 3. Verify approvals, decisions, strict scope, and anti-drift
-node scripts/check-approval.mjs --strict-scope
+# 3. Verify approvals, decisions, strict scope (staged changes only), and anti-drift
+node scripts/check-approval.mjs --strict-scope --staged-only
 RESULT=$?
 if [ $RESULT -ne 0 ]; then
   echo "\n[ERROR] Commit blocked by Master Foundation Gate:"
-  echo "Approval hash mismatch, unapproved decision, or drift detected in specs."
-  echo "Run 'node scripts/check-approval.mjs' for details.\n"
+  echo "Approval hash mismatch, unapproved decision, or scope violation detected."
+  echo "Run 'node scripts/check-approval.mjs --staged-only' for details.\n"
   exit 1
 fi
 

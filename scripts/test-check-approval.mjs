@@ -1,12 +1,9 @@
 #!/usr/bin/env node
 /**
- * Master Foundation Gate & Anti-Drift Regression Test Suite (v6.5.0)
- * Covers:
- * - T1..T13: Base mechanical gate functionality
- * - EVAL-33..EVAL-48: Master Foundation v6.5.0 specifications
+ * Master Foundation Gate & Anti-Drift Regression Test Suite (v6.5.1)
  * Zero external dependencies. Runs on Node.js 18+. Exit 1 on any failure.
  */
-import { spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -15,126 +12,432 @@ import { fileURLToPath } from 'node:url';
 
 import {
   canonicalize,
-  checkStrictScope,
-  computeSha256,
-  matchAnyGlob,
-  signCanonical,
-  verifyCanonical
+  checkStrictScope
 } from './check-approval.mjs';
 
-const SCRIPT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'check-approval.mjs');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mf-approval-v65-'));
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(SCRIPT_DIR, '..');
+const SCRIPT = path.join(SCRIPT_DIR, 'check-approval.mjs');
+const BUNDLE_SCRIPT = path.join(SCRIPT_DIR, 'generate-bundle.mjs');
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mf-approval-v651-'));
 const SPEC = 'specs/001';
 
-const w = (relPath, data) => {
-  const p = path.join(tmp, relPath);
-  fs.mkdirSync(path.dirname(p), { recursive: true });
-  fs.writeFileSync(p, data);
+const writeTmp = (relPath, data) => {
+  const full = path.join(tmp, relPath);
+  fs.mkdirSync(path.dirname(full), { recursive: true });
+  fs.writeFileSync(full, data);
+  return full;
 };
 
-const run = (...a) => spawnSync('node', [SCRIPT, ...a], { cwd: tmp, encoding: 'utf8', env: { ...process.env } });
+const runCli = (args, opts = {}) =>
+  spawnSync(process.execPath, [SCRIPT, ...args], {
+    cwd: opts.cwd || tmp,
+    encoding: 'utf8',
+    env: { ...process.env, ...(opts.env || {}) }
+  });
 
-const reset = () => {
-  fs.rmSync(path.join(tmp, 'specs'), { recursive: true, force: true });
-  fs.rmSync(path.join(tmp, '.mf'), { recursive: true, force: true });
-  fs.rmSync(path.join(tmp, 'res.json'), { force: true });
-  w(`${SPEC}/spec.md`, '# spec\nline\n');
+const resetWorkspace = () => {
+  for (const entry of fs.readdirSync(tmp)) {
+    fs.rmSync(path.join(tmp, entry), { recursive: true, force: true });
+  }
+  writeTmp(`${SPEC}/spec.md`, '# spec\nline\n');
 };
 
-const seal = (decision = 'approved', extraArgs = []) => {
-  w('res.json', JSON.stringify({ decision, feedback: '' }));
-  return run('--seal', `${SPEC}/APPROVAL.json`, '--from-result', 'res.json', `${SPEC}/spec.md`, ...extraArgs);
+const setupEd25519Signer = (signerId = 'lead_dev', root = tmp) => {
+  const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
+  const pubPem = publicKey.export({ type: 'spki', format: 'pem' });
+  const privPem = privateKey.export({ type: 'pkcs8', format: 'pem' });
+  const privPath = path.join(root, '.test-keys', `${signerId}.key`);
+  fs.mkdirSync(path.dirname(privPath), { recursive: true });
+  fs.writeFileSync(privPath, privPem);
+
+  const signersPath = path.join(root, '.mf', 'allowed_signers.json');
+  fs.mkdirSync(path.dirname(signersPath), { recursive: true });
+  fs.writeFileSync(
+    signersPath,
+    JSON.stringify({ [signerId]: { name: signerId, publicKey: pubPem, alg: 'ed25519' } }, null, 2)
+  );
+  return { privPath, pubPem };
+};
+
+const sealSigned = (options = {}) => {
+  const {
+    decision = 'approved',
+    specDir = SPEC,
+    files = [`${specDir}/spec.md`],
+    allowedPaths = 'src/**',
+    extraArgs = [],
+    signerId = 'lead_dev',
+    privPath = null,
+    cwd = tmp
+  } = options;
+
+  let keyPath = privPath;
+  if (!keyPath) {
+    keyPath = setupEd25519Signer(signerId, cwd).privPath;
+  }
+
+  const resPath = path.join(cwd, 'res.json');
+  fs.writeFileSync(resPath, JSON.stringify({ decision, feedback: '' }));
+
+  const args = [
+    '--seal',
+    `${specDir}/APPROVAL.json`,
+    '--from-result',
+    'res.json',
+    '--approver',
+    signerId,
+    '--sign-key',
+    keyPath
+  ];
+  if (allowedPaths !== null) {
+    args.push('--allowed-paths', allowedPaths);
+  }
+  args.push(...extraArgs, ...files);
+  return runCli(args, { cwd });
+};
+
+const initGitRepo = (dir) => {
+  execFileSync('git', ['init'], { cwd: dir, stdio: 'ignore' });
+  execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd: dir, stdio: 'ignore' });
+  execFileSync('git', ['config', 'user.name', 'Test User'], { cwd: dir, stdio: 'ignore' });
+  fs.writeFileSync(path.join(dir, 'README.md'), '# init\n');
+  execFileSync('git', ['add', 'README.md'], { cwd: dir, stdio: 'ignore' });
+  execFileSync('git', ['commit', '-m', 'init'], { cwd: dir, stdio: 'ignore' });
+  return execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
 };
 
 let failed = 0;
-function t(name, fn) {
-  reset();
-  let ok = false,
-    why = '';
+let passed = 0;
+
+function testCase(name, fn) {
+  resetWorkspace();
+  let ok = false;
+  let why = '';
   try {
-    const r = fn();
-    ok = r === true;
-    why = ok ? '' : String(r);
-  } catch (e) {
-    why = e.message;
+    const outcome = fn();
+    ok = outcome === true;
+    why = ok ? '' : String(outcome);
+  } catch (err) {
+    why = err.stack || err.message;
   }
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${ok ? '' : '  -> ' + why}`);
-  if (!ok) failed++;
+  if (ok) passed++;
+  else failed++;
 }
 
-console.log('--- Phase 1: Base Mechanical Gate (T1..T13) ---');
+console.log('--- Phase 1: Base Mechanical Gate Contracts ---');
 
-t('T1 seal without --from-result is refused', () => run('--seal', `${SPEC}/APPROVAL.json`, `${SPEC}/spec.md`).status === 1);
+testCase('seal_without_from_result_is_refused', () =>
+  runCli(['--seal', `${SPEC}/APPROVAL.json`, '--allowed-paths', 'src/**', `${SPEC}/spec.md`]).status === 1
+);
 
-t('T2 seal with missing result file is refused (no fallback)', () => {
-  w(`${SPEC}/APPROVAL.json`, '{"decision":"approved"}');
-  return run('--seal', `${SPEC}/APPROVAL.json`, '--from-result', 'nope.json', `${SPEC}/spec.md`).status === 1;
+testCase('seal_with_missing_result_file_is_refused', () =>
+  runCli([
+    '--seal',
+    `${SPEC}/APPROVAL.json`,
+    '--from-result',
+    'nope.json',
+    '--allowed-paths',
+    'src/**',
+    `${SPEC}/spec.md`
+  ]).status === 1
+);
+
+testCase('seal_with_non_approved_decision_is_refused', () =>
+  sealSigned({ decision: 'feedback' }).status === 1
+);
+
+testCase('seal_without_allowed_paths_is_refused', () => {
+  const res = sealSigned({ allowedPaths: null });
+  return res.status === 1 && /allowed-paths/i.test(res.stderr);
 });
 
-t('T3 seal with decision feedback is refused', () => seal('feedback').status === 1);
-
-t('T4 seal approved then verify passes', () => seal().status === 0 && run().status === 0);
-
-t('T5 verify rejects non-approved decision even with valid hashes', () => {
-  seal();
-  const p = path.join(tmp, SPEC, 'APPROVAL.json');
-  const d = JSON.parse(fs.readFileSync(p, 'utf8'));
-  d.decision = 'feedback';
-  fs.writeFileSync(p, JSON.stringify(d));
-  return run().status === 1;
-});
-
-t('T6 editing sealed file is detected', () => {
-  seal();
-  w(`${SPEC}/spec.md`, '# changed\n');
-  return run().status === 1;
-});
-
-t('T7 CRLF vs LF of same text does not break the seal', () => {
-  seal();
-  w(`${SPEC}/spec.md`, '# spec\r\nline\r\n');
-  return run().status === 0;
-});
-
-t('T8 unsealed .json file in spec folder is detected', () => {
-  seal();
-  w(`${SPEC}/schema.json`, '{}');
-  return run().status === 1;
-});
-
-t('T9 unsealed nested file is detected', () => {
-  seal();
-  w(`${SPEC}/contracts/api.md`, '# c\n');
-  return run().status === 1;
-});
-
-t('T10 binary file is hashed raw and verifies', () => {
-  w(`${SPEC}/img.png`, Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x00, 0xff]));
-  w('res.json', '{"decision":"approved"}');
-  return (
-    run('--seal', `${SPEC}/APPROVAL.json`, '--from-result', 'res.json', `${SPEC}/spec.md`, `${SPEC}/img.png`).status ===
-      0 && run().status === 0
-  );
-});
-
-t('T11 mistyped verify argument fails closed', () => run('specs/typo/APPROVAL.json').status === 1);
-
-t('T12 sealing a file outside the repo is refused', () => {
-  w('res.json', '{"decision":"approved"}');
-  const outside = path.join(os.tmpdir(), 'mf-outside.md');
+testCase('seal_outside_repo_is_refused', () => {
+  const outside = path.join(os.tmpdir(), 'mf-outside-v651.md');
   fs.writeFileSync(outside, 'x');
-  return run('--seal', `${SPEC}/APPROVAL.json`, '--from-result', 'res.json', outside).status === 1;
+  const res = sealSigned({ files: [outside] });
+  fs.rmSync(outside, { force: true });
+  return res.status === 1;
 });
 
-t('T13 no specs folder is OK (exit 0)', () => {
+testCase('seal_secret_env_file_is_refused', () => {
+  writeTmp(`${SPEC}/.env`, 'SECRET_KEY=supersecret\n');
+  const res = sealSigned({ files: [`${SPEC}/.env`] });
+  return res.status === 1 && res.stderr.includes('REFUSED: attempting to seal sensitive secret file');
+});
+
+testCase('mistyped_verify_argument_fails_closed', () =>
+  runCli(['specs/typo/APPROVAL.json']).status === 1
+);
+
+testCase('no_specs_folder_with_clean_guardrails_passes', () => {
   fs.rmSync(path.join(tmp, 'specs'), { recursive: true, force: true });
-  return run().status === 0;
+  return runCli([]).status === 0;
 });
 
-console.log('\n--- Phase 2: Master Foundation v6.5 Specifications (EVAL-33..EVAL-48) ---');
+console.log('\n--- Phase 2: Cryptographic Ed25519, Fail-Closed & Canonical JSON ---');
 
-// EVAL-33: Scope violation in src/auth/ when allowed_paths is src/billing/
-t('EVAL-33: Modification outside allowed_paths is rejected (Scope Violation)', () => {
+testCase('verify_fails_closed_when_no_allowed_signers_exist', () => {
+  const { privPath } = setupEd25519Signer();
+  const sealed = sealSigned({ privPath });
+  if (sealed.status !== 0) return `seal failed: ${sealed.stderr}`;
+
+  // Remove trust root and strip signature to simulate bypass attempt
+  fs.rmSync(path.join(tmp, '.mf'), { recursive: true, force: true });
+  const approvalPath = path.join(tmp, SPEC, 'APPROVAL.json');
+  const parsed = JSON.parse(fs.readFileSync(approvalPath, 'utf8'));
+  delete parsed.signature;
+  fs.writeFileSync(approvalPath, JSON.stringify(parsed, null, 2));
+
+  const verified = runCli([]);
+  return verified.status === 1;
+});
+
+testCase('ed25519_unencrypted_key_full_cli_lifecycle', () => {
+  const keyDir = path.join(tmp, 'dev-keys');
+  const gen = runCli(['--generate-key', '--id', 'arch_dev', '--no-passphrase', '--key-dir', keyDir]);
+  if (gen.status !== 0) return `generate-key failed: ${gen.stderr}`;
+
+  const privPath = path.join(keyDir, 'id_ed25519');
+  writeTmp('res.json', JSON.stringify({ decision: 'approved' }));
+  const sealed = runCli([
+    '--seal',
+    `${SPEC}/APPROVAL.json`,
+    '--from-result',
+    'res.json',
+    '--approver',
+    'arch_dev',
+    '--sign-key',
+    privPath,
+    '--allowed-paths',
+    'src/**',
+    `${SPEC}/spec.md`
+  ]);
+  if (sealed.status !== 0) return `seal failed: ${sealed.stderr}`;
+
+  const verifiedOk = runCli([]);
+  if (verifiedOk.status !== 0) return `verify failed: ${verifiedOk.stderr}`;
+
+  // Tamper payload after signing -> must fail signature verification
+  const approvalPath = path.join(tmp, SPEC, 'APPROVAL.json');
+  const parsed = JSON.parse(fs.readFileSync(approvalPath, 'utf8'));
+  parsed.decision = 'approved-with-notes';
+  fs.writeFileSync(approvalPath, JSON.stringify(parsed, null, 2));
+  const verifiedTampered = runCli([]);
+  return verifiedTampered.status === 1 && verifiedTampered.stderr.includes('INVALID SIGNATURE');
+});
+
+testCase('ed25519_encrypted_key_with_passphrase_full_cli_lifecycle', () => {
+  const keyDir = path.join(tmp, 'enc-keys');
+  const envPass = { TEST_MF_PASS: 'S3cur3-Passphrase-v651!' };
+  const gen = runCli(
+    ['--generate-key', '--id', 'enc_dev', '--passphrase-env', 'TEST_MF_PASS', '--key-dir', keyDir],
+    { env: envPass }
+  );
+  if (gen.status !== 0) return `generate-key failed: ${gen.stderr}`;
+
+  const privPath = path.join(keyDir, 'id_ed25519');
+  const pemText = fs.readFileSync(privPath, 'utf8');
+  if (!pemText.includes('ENCRYPTED PRIVATE KEY')) {
+    return 'generated private key is not encrypted PEM';
+  }
+
+  writeTmp('res.json', JSON.stringify({ decision: 'approved' }));
+
+  // Wrong passphrase must fail
+  const wrongSeal = runCli(
+    [
+      '--seal',
+      `${SPEC}/APPROVAL.json`,
+      '--from-result',
+      'res.json',
+      '--approver',
+      'enc_dev',
+      '--sign-key',
+      privPath,
+      '--passphrase-env',
+      'WRONG_PASS',
+      '--allowed-paths',
+      'src/**',
+      `${SPEC}/spec.md`
+    ],
+    { env: { WRONG_PASS: 'totally-wrong' } }
+  );
+  if (wrongSeal.status !== 1) return 'seal with wrong passphrase should fail';
+
+  // Correct passphrase succeeds and verifies
+  const goodSeal = runCli(
+    [
+      '--seal',
+      `${SPEC}/APPROVAL.json`,
+      '--from-result',
+      'res.json',
+      '--approver',
+      'enc_dev',
+      '--sign-key',
+      privPath,
+      '--passphrase-env',
+      'TEST_MF_PASS',
+      '--allowed-paths',
+      'src/**',
+      `${SPEC}/spec.md`
+    ],
+    { env: envPass }
+  );
+  if (goodSeal.status !== 0) return `good seal failed: ${goodSeal.stderr}`;
+
+  return runCli([]).status === 0;
+});
+
+testCase('unsigned_approval_rejected_when_signers_registered', () => {
+  setupEd25519Signer('lead_dev');
+  writeTmp('res.json', JSON.stringify({ decision: 'approved' }));
+  runCli([
+    '--seal',
+    `${SPEC}/APPROVAL.json`,
+    '--from-result',
+    'res.json',
+    '--approver',
+    'lead_dev',
+    '--allowed-paths',
+    'src/**',
+    `${SPEC}/spec.md`
+  ]);
+  const res = runCli([]);
+  return res.status === 1 && res.stderr.includes('UNSIGNED APPROVAL');
+});
+
+testCase('unauthorized_signer_is_rejected', () => {
+  setupEd25519Signer('lead_dev');
+  const roguePair = crypto.generateKeyPairSync('ed25519');
+  const rogueKeyPath = writeTmp('.test-keys/rogue.key', roguePair.privateKey.export({ type: 'pkcs8', format: 'pem' }));
+  sealSigned({ signerId: 'rogue_dev', privPath: rogueKeyPath });
+  const res = runCli([]);
+  return res.status === 1 && res.stderr.includes('UNAUTHORIZED SIGNER');
+});
+
+testCase('canonicalize_preserves_nested_signature_and_normalizes_array_undefined', () => {
+  const input = {
+    signature: 'root-sig-excluded',
+    meta: { signature: 'nested-sig-kept', b: 2, a: 1 },
+    items: [1, undefined, -0]
+  };
+  const actual = canonicalize(input);
+  const expected = '{"items":[1,null,0],"meta":{"a":1,"b":2,"signature":"nested-sig-kept"}}';
+  return actual === expected ? true : `got ${actual}`;
+});
+
+console.log('\n--- Phase 3: Command Injection Prevention & Windows Git Compatibility ---');
+
+testCase('base_commit_command_injection_rejected_without_shell_execution', () => {
+  initGitRepo(tmp);
+  const marker = path.join(tmp, 'pwned.txt');
+  const injection = `deadbeef || node -e "require('fs').writeFileSync('pwned.txt','pwned')"`;
+  const sealed = sealSigned({ extraArgs: ['--base-commit', injection] });
+  if (sealed.status !== 0) {
+    return !fs.existsSync(marker);
+  }
+  const res = runCli([]);
+  return res.status === 1 && !fs.existsSync(marker);
+});
+
+testCase('signature_checked_before_base_commit_validation', () => {
+  initGitRepo(tmp);
+  sealSigned({});
+  const approvalPath = path.join(tmp, SPEC, 'APPROVAL.json');
+  const parsed = JSON.parse(fs.readFileSync(approvalPath, 'utf8'));
+  parsed.base_commit = 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef';
+  fs.writeFileSync(approvalPath, JSON.stringify(parsed, null, 2));
+  const res = runCli([]);
+  return res.status === 1 && res.stderr.includes('INVALID SIGNATURE');
+});
+
+testCase('valid_base_commit_verifies_on_windows_without_caret_escape_bug', () => {
+  initGitRepo(tmp);
+  writeTmp('.gitignore', 'res.json\n.test-keys/\n');
+  const { privPath } = setupEd25519Signer('lead_dev', tmp);
+  execFileSync('git', ['add', '.gitignore', '.mf/allowed_signers.json'], { cwd: tmp, stdio: 'ignore' });
+  execFileSync('git', ['commit', '-m', 'setup signers'], { cwd: tmp, stdio: 'ignore' });
+  const headSha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: tmp, encoding: 'utf8' }).trim();
+
+  const sealed = sealSigned({ extraArgs: ['--base-commit', headSha], privPath });
+  if (sealed.status !== 0) return `seal failed: ${sealed.stderr}`;
+  const res = runCli([]);
+  return res.status === 0 ? true : `verify failed: ${res.stderr}`;
+});
+
+console.log('\n--- Phase 4: Anti-Drift, Expiry & Archive Lifecycle ---');
+
+testCase('editing_sealed_file_triggers_hash_mismatch', () => {
+  sealSigned({});
+  writeTmp(`${SPEC}/spec.md`, '# tampered\n');
+  const res = runCli([]);
+  return res.status === 1 && res.stderr.includes('HASH MISMATCH');
+});
+
+testCase('crlf_vs_lf_preserves_seal_hash', () => {
+  sealSigned({});
+  writeTmp(`${SPEC}/spec.md`, '# spec\r\nline\r\n');
+  return runCli([]).status === 0;
+});
+
+testCase('binary_file_hashed_raw_and_verifies', () => {
+  writeTmp(`${SPEC}/img.png`, Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x00, 0xff]));
+  const sealed = sealSigned({ files: [`${SPEC}/spec.md`, `${SPEC}/img.png`] });
+  return sealed.status === 0 && runCli([]).status === 0;
+});
+
+testCase('unsealed_nested_file_in_spec_folder_is_detected', () => {
+  sealSigned({});
+  writeTmp(`${SPEC}/contracts/api.md`, '# unsealed\n');
+  const res = runCli([]);
+  return res.status === 1 && res.stderr.includes('UNSEALED SPEC FILE');
+});
+
+testCase('expired_active_approval_is_rejected', () => {
+  const sealed = sealSigned({ extraArgs: ['--expires-in', '-1'] });
+  if (sealed.status !== 0) return `seal failed: ${sealed.stderr}`;
+  const res = runCli([]);
+  return res.status === 1 && res.stderr.includes('EXPIRED');
+});
+
+testCase('archived_expired_approval_passes_intact_and_fails_tampered', () => {
+  const archivedDir = 'specs/archive/001-done';
+  writeTmp(`${archivedDir}/spec.md`, '# completed feature\n');
+  const sealed = sealSigned({
+    specDir: archivedDir,
+    files: [`${archivedDir}/spec.md`],
+    allowedPaths: 'src/legacy/**',
+    extraArgs: ['--expires-in', '-30']
+  });
+  if (sealed.status !== 0) return `seal failed: ${sealed.stderr}`;
+
+  // Archived & expired must pass verify when intact
+  const intact = runCli([]);
+  if (intact.status !== 0) return `archived intact failed: ${intact.stderr}`;
+
+  // Archived spec must NOT grant active allowed_paths in --check-scope
+  const scopeOut = runCli(['--check-scope']);
+  if (scopeOut.status !== 0 || !scopeOut.stdout.includes('No active APPROVAL.json')) {
+    return `archived spec leaked into active scope: ${scopeOut.stdout} ${scopeOut.stderr}`;
+  }
+
+  // Tampering archived spec file must STILL be detected
+  writeTmp(`${archivedDir}/spec.md`, '# retroactively altered\n');
+  const tampered = runCli([]);
+  return tampered.status === 1 && tampered.stderr.includes('HASH MISMATCH');
+});
+
+testCase('mismatched_repository_id_is_rejected', () => {
+  sealSigned({ extraArgs: ['--repo-id', 'foreign-enterprise-repo'] });
+  const res = runCli([], { env: { STRICT_REPO_CHECK: 'true' } });
+  return res.status === 1 && res.stderr.includes('REPOSITORY MISMATCH');
+});
+
+console.log('\n--- Phase 5: Strict Scope, Guardrails, Symlinks & Git Edge Cases ---');
+
+testCase('modification_outside_allowed_paths_rejected', () => {
   const errors = checkStrictScope(tmp, ['src/billing/**'], {
     files: ['src/auth/login.ts'],
     checkGit: false
@@ -142,182 +445,132 @@ t('EVAL-33: Modification outside allowed_paths is rejected (Scope Violation)', (
   return errors.some((e) => e.includes('Scope violation') && e.includes('src/auth/login.ts'));
 });
 
-// EVAL-34: Destructive scripts or unallowed execution flagged
-t('EVAL-34: Destructive Python/Node scripts outside allowed_paths are caught by scope engine', () => {
-  const errors = checkStrictScope(tmp, ['src/components/**'], {
-    files: ['scripts/nuke-database.py'],
+testCase('guardrail_files_blocked_even_with_wildcard_allowed_paths', () => {
+  const errors = checkStrictScope(tmp, ['**'], {
+    files: ['.mf/allowed_signers.json', '.githooks/pre-commit', 'AGENTS.md', 'scripts/test-check-approval.mjs'],
     checkGit: false
   });
-  return errors.some((e) => e.includes('Scope violation') && e.includes('scripts/nuke-database.py'));
+  return (
+    errors.some((e) => e.includes('.mf/allowed_signers.json') && e.includes('guardrail')) &&
+    errors.some((e) => e.includes('.githooks/pre-commit') && e.includes('guardrail')) &&
+    errors.some((e) => e.includes('AGENTS.md') && e.includes('guardrail')) &&
+    errors.some((e) => e.includes('scripts/test-check-approval.mjs') && e.includes('guardrail'))
+  );
 });
 
-// EVAL-35: Anti-spoofing in Headless/SSH: unauthenticated approval without developer signature rejected
-t('EVAL-35: Unauthenticated self-stamped approval without developer signature is rejected', () => {
-  const keyPair = crypto.generateKeyPairSync('ed25519');
-  const pubKeyHex = keyPair.publicKey.export({ type: 'spki', format: 'pem' });
-  w('.mf/allowed_signers.json', JSON.stringify({ lead_dev: { publicKey: pubKeyHex, alg: 'ed25519' } }));
-
-  // Sealed without key
-  seal('approved', ['--approver', 'lead_dev']);
-  return run().status === 1;
-});
-
-// EVAL-36: Implementation Conformance: unsealed spec files fail verification
-t('EVAL-36: Missing spec fulfillment or unsealed spec file fails conformance verification', () => {
-  seal('approved');
-  w(`${SPEC}/untracked-requirement.md`, '# Missing in tasks\n');
-  return run().status === 1;
-});
-
-// EVAL-37: Expired approval or stale base_commit rejected
-t('EVAL-37: Expired APPROVAL.json (expires_at in past) fails verification with exit 1', () => {
-  seal('approved');
-  const p = path.join(tmp, SPEC, 'APPROVAL.json');
-  const d = JSON.parse(fs.readFileSync(p, 'utf8'));
-  d.expires_at = '2021-01-01T00:00:00.000Z'; // Expired
-  fs.writeFileSync(p, JSON.stringify(d, null, 2));
-  return run().status === 1;
-});
-
-// EVAL-38: Unauthorized modification of guardrail files is blocked
-t('EVAL-38: Modification of guardrail files (.githooks/pre-commit) rejected unless explicitly authorized', () => {
-  const errors = checkStrictScope(tmp, ['src/app/**'], {
-    files: ['.githooks/pre-commit'],
-    checkGit: false
+testCase('guardrail_files_allowed_only_with_signed_allow_guardrails_flag', () => {
+  initGitRepo(tmp);
+  const sealed = sealSigned({
+    allowedPaths: '.githooks/pre-commit',
+    extraArgs: ['--allow-guardrails']
   });
-  return errors.some((e) => e.includes('Unauthorized modification to guardrail file'));
+  if (sealed.status !== 0) return `seal failed: ${sealed.stderr}`;
+
+  // Modify the explicitly authorized guardrail file and stage it
+  writeTmp('.githooks/pre-commit', '#!/bin/sh\necho ok\n');
+  execFileSync('git', ['add', '.githooks/pre-commit'], { cwd: tmp, stdio: 'ignore' });
+  const okRes = runCli(['--check-scope', '--staged-only']);
+  if (okRes.status !== 0) return `authorized guardrail failed: ${okRes.stderr}`;
+
+  // Touching a DIFFERENT guardrail file not in allowed_paths must still fail
+  writeTmp('AGENTS.md', '# unauthorized\n');
+  execFileSync('git', ['add', 'AGENTS.md'], { cwd: tmp, stdio: 'ignore' });
+  const blockedRes = runCli(['--check-scope', '--staged-only']);
+  return blockedRes.status === 1 && blockedRes.stderr.includes('AGENTS.md');
 });
 
-// EVAL-39: Reusing APPROVAL.json from another repository is rejected
-t('EVAL-39: Reusing APPROVAL.json with mismatched repository_id fails verification', () => {
-  seal('approved', ['--repo-id', 'foreign-enterprise-repo']);
-  const res = spawnSync('node', [SCRIPT], {
-    cwd: tmp,
-    encoding: 'utf8',
-    env: { ...process.env, STRICT_REPO_CHECK: 'true' }
-  });
-  return res.status === 1 && res.stderr.includes('REPOSITORY MISMATCH');
-});
-
-// EVAL-40: Post-CI code modification detected via drift checks
-t('EVAL-40: Modifying code after approval check triggers drift detection', () => {
-  seal('approved');
-  w(`${SPEC}/spec.md`, '# New Unapproved Change Added\n');
-  return run().status === 1;
-});
-
-// EVAL-41: Untracked file or Symlink pointing outside allowed_paths / repo is rejected
-t('EVAL-41: Symlink pointing outside repo or untracked file outside scope is rejected', () => {
-  // Check path traversal via scope engine
+testCase('path_traversal_and_symlink_outside_allowed_paths_rejected', () => {
   const traversalErrors = checkStrictScope(tmp, ['src/**'], {
     files: ['../../etc/passwd'],
     checkGit: false
   });
-  const hasTraversalError = traversalErrors.some((e) => e.includes('Path traversal'));
+  const hasTraversal = traversalErrors.some((e) => e.includes('Path traversal'));
 
-  // Test symlink if platform permits
   let symlinkOk = true;
   try {
-    const targetFile = path.join(tmp, 'outside-target.txt');
-    fs.writeFileSync(targetFile, 'content');
-    const linkPath = path.join(tmp, 'symlink-test.txt');
+    const targetFile = writeTmp('outside-target.txt', 'content');
+    const linkPath = path.join(tmp, 'src', 'link.txt');
+    fs.mkdirSync(path.dirname(linkPath), { recursive: true });
     fs.symlinkSync(targetFile, linkPath);
     const symlinkErrors = checkStrictScope(tmp, ['src/**'], {
-      files: ['symlink-test.txt'],
+      files: ['src/link.txt'],
       checkGit: false
     });
-    symlinkOk = symlinkErrors.some((e) => e.includes('outside allowed_paths') || e.includes('Scope violation'));
+    symlinkOk = symlinkErrors.some((e) => e.includes('outside allowed_paths'));
     fs.unlinkSync(linkPath);
-    fs.unlinkSync(targetFile);
   } catch {
-    // Platform without symlink permissions defaults to true
+    // Platform without symlink creation privilege
   }
 
-  return hasTraversalError && symlinkOk;
+  return hasTraversal && symlinkOk;
 });
 
-// EVAL-42: Local hook bypass detected: strict CI scope check fails on unverified files
-t('EVAL-42: CI merge-tree and strict scope check catches unverified commits', () => {
-  const errors = checkStrictScope(tmp, ['src/allowed/**'], {
-    files: ['src/unverified-bypass.ts'],
-    checkGit: false
+testCase('check_scope_rejects_unsigned_approval_trying_to_inject_scope', () => {
+  initGitRepo(tmp);
+  setupEd25519Signer('lead_dev');
+  writeTmp('res.json', JSON.stringify({ decision: 'approved' }));
+  // Create unsigned approval with broad allowed_paths
+  runCli([
+    '--seal',
+    `${SPEC}/APPROVAL.json`,
+    '--from-result',
+    'res.json',
+    '--approver',
+    'lead_dev',
+    '--allowed-paths',
+    'src/**',
+    `${SPEC}/spec.md`
+  ]);
+  writeTmp('src/sneaky.ts', 'export const x = 1;\n');
+  execFileSync('git', ['add', 'src/sneaky.ts'], { cwd: tmp, stdio: 'ignore' });
+
+  const res = runCli(['--check-scope', '--staged-only']);
+  return res.status === 1;
+});
+
+testCase('git_spaces_arabic_filenames_and_staged_only_mode', () => {
+  initGitRepo(tmp);
+  writeTmp('.gitignore', 'res.json\n.test-keys/\n');
+  const { privPath } = setupEd25519Signer('lead_dev', tmp);
+  execFileSync('git', ['add', '.gitignore', '.mf/allowed_signers.json'], { cwd: tmp, stdio: 'ignore' });
+  execFileSync('git', ['commit', '-m', 'setup signers'], { cwd: tmp, stdio: 'ignore' });
+
+  const sealed = sealSigned({ allowedPaths: 'src/allowed/**', privPath });
+  if (sealed.status !== 0) return `seal failed: ${sealed.stderr}`;
+
+  // Stage a file with spaces & Arabic characters inside allowed_paths
+  writeTmp('src/allowed/ملف عربي test.txt', 'hello\n');
+  execFileSync('git', ['add', 'src/allowed/ملف عربي test.txt'], { cwd: tmp, stdio: 'ignore' });
+
+  // Leave an unrelated untracked draft outside allowed_paths
+  writeTmp('scratch/untracked draft.txt', 'wip\n');
+
+  // --staged-only (used by pre-commit) should PASS
+  const stagedRes = runCli(['--check-scope', '--staged-only']);
+  if (stagedRes.status !== 0) return `staged-only failed: ${stagedRes.stderr}`;
+
+  // Full working tree mode (without --staged-only) must CATCH the untracked draft
+  const fullRes = runCli(['--check-scope']);
+  return fullRes.status === 1 && fullRes.stderr.includes('scratch/untracked draft.txt');
+});
+
+console.log('\n--- Phase 6: Single Source of Truth Rules Parity ---');
+
+testCase('rules_files_match_canonical_source_via_check_rules', () => {
+  const res = spawnSync(process.execPath, [BUNDLE_SCRIPT, '--check-rules'], {
+    cwd: REPO_ROOT,
+    encoding: 'utf8'
   });
-  return errors.length > 0 && errors[0].includes('Scope violation');
+  return res.status === 0 && res.stdout.includes('RULES PARITY OK')
+    ? true
+    : `rules drift: ${res.stdout} ${res.stderr}`;
 });
 
-// EVAL-43: Secret file protection: sealing .env or credentials is fundamentally refused
-t('EVAL-43: Sealing sensitive secret files (.env, credentials) is refused by --seal', () => {
-  w(`${SPEC}/.env`, 'SECRET_KEY=supersecret\n');
-  w('res.json', JSON.stringify({ decision: 'approved' }));
-  const r = run('--seal', `${SPEC}/APPROVAL.json`, '--from-result', 'res.json', `${SPEC}/.env`);
-  return r.status === 1 && r.stderr.includes('REFUSED: attempting to seal sensitive secret file');
-});
-
-// EVAL-44: Multi-agent concurrency collision: conflicting allowed_paths on divergent worktrees
-t('EVAL-44: Concurrency collision between conflicting allowed_paths is detectable', () => {
-  const agent1Scope = ['src/billing/**'];
-  const agent2Scope = ['src/auth/**', 'src/billing/payment.ts'];
-
-  const hasOverlap = agent2Scope.some((pattern) => matchAnyGlob(agent1Scope, pattern.replace(/\*\*/g, 'test.ts')));
-  return hasOverlap === true;
-});
-
-// EVAL-45: Change Surface Inventory: unrecorded out-of-scope changes detected
-t('EVAL-45: Unrecorded changes outside allowed_paths fail change surface verification', () => {
-  const errors = checkStrictScope(tmp, ['src/features/dashboard/**'], {
-    files: ['infra/terraform/main.tf'],
-    checkGit: false
-  });
-  return errors.some((e) => e.includes('Scope violation') && e.includes('infra/terraform/main.tf'));
-});
-
-// EVAL-46: Spec drift: editing spec.md after approval triggers SHA-256 hash mismatch
-t('EVAL-46: Spec drift after approval triggers SHA-256 mismatch (exit 1)', () => {
-  seal('approved');
-  w(`${SPEC}/spec.md`, '# Changed Spec Requirement After Approval\n');
-  const res = run();
-  return res.status === 1 && res.stderr.includes('HASH MISMATCH');
-});
-
-// EVAL-47: Canonical JSON signing: valid signature passes, invalid signature fails
-t('EVAL-47: Canonical JSON digital signature (RFC 8785) verification and tamper rejection', () => {
-  const secret = 'super-secure-dev-secret-key-12345';
-  const approvalData = {
-    approval_id: 'uuid-123',
-    decision: 'approved',
-    approver_id: 'architect_01',
-    allowed_paths: ['src/**'],
-    expires_at: '2030-01-01T00:00:00.000Z'
-  };
-
-  // Sign canonical JSON
-  const signature = signCanonical(approvalData, secret, 'hmac-sha256');
-
-  // Verify valid signature
-  const valid = verifyCanonical(approvalData, signature, secret, 'hmac-sha256');
-
-  // Tamper data
-  const tampered = { ...approvalData, decision: 'approved-with-notes' };
-  const invalidTampered = verifyCanonical(tampered, signature, secret, 'hmac-sha256');
-
-  // Tamper signature
-  const tamperedSig = (signature[0] === 'a' ? 'b' : 'a') + signature.slice(1);
-  const invalidSig = verifyCanonical(approvalData, tamperedSig, secret, 'hmac-sha256');
-
-  return valid === true && invalidTampered === false && invalidSig === false;
-});
-
-// EVAL-48: Unpinned external dependencies rejected
-t('EVAL-48: Unpinned versions or dependencies are detected and flagged', () => {
-  const isPinned = (ver) => /^v?[0-9]+\.[0-9]+\.[0-9]+$/.test(ver);
-  const unpinned = ['*', 'latest', '^1.2.0', '~2.0.0'];
-  const allRejected = unpinned.every((v) => !isPinned(v));
-  const pinnedAccepted = isPinned('1.2.3') && isPinned('v6.5.0');
-  return allRejected && pinnedAccepted;
-});
-
-// Cleanup temp directory
 fs.rmSync(tmp, { recursive: true, force: true });
 
-console.log(failed === 0 ? '\nALL 29 TESTS PASSED (T1..T13 + EVAL-33..EVAL-48)' : `\n${failed} TEST(S) FAILED`);
+console.log(
+  failed === 0
+    ? `\nALL ${passed} TESTS PASSED (Master Foundation v6.5.1 Suite)`
+    : `\n${failed} OF ${passed + failed} TEST(S) FAILED`
+);
 process.exit(failed === 0 ? 0 : 1);

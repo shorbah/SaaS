@@ -1,4 +1,4 @@
-﻿# Master Foundation v6.5 - All-in-One Device Setup Script
+﻿# Master Foundation v6.5.1 - All-in-One Device Setup Script
 # Configures git hooks, syncs global agent skills, sets review gate rules,
 # and interactively generates or verifies the device's cryptographic signing key.
 
@@ -7,13 +7,14 @@ param (
     [string]$SignerId = "",
     [string]$SignerName = "",
     [switch]$SkipKey,
+    [switch]$NoPassphrase,
     [switch]$Force
 )
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "🚀 Master Foundation v6.5 - Device Setup & Verification" -ForegroundColor Cyan
+Write-Host "🚀 Master Foundation v6.5.1 - Device Setup & Verification" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
 $repoRoot = (Resolve-Path "$PSScriptRoot\..").Path
@@ -123,6 +124,7 @@ if (-not $SkipKey) {
 
         Write-Host "  -> Generating local key pair for signer: '$SignerId'..." -ForegroundColor Yellow
         $genArgs = @("scripts/check-approval.mjs", "--generate-key", "--id", $SignerId, "--name", $SignerName)
+        if ($NoPassphrase) { $genArgs += "--no-passphrase" }
         if ($Force) { $genArgs += "--force" }
         & node $genArgs
         if ($LASTEXITCODE -ne 0) {
@@ -135,8 +137,8 @@ if (-not $SkipKey) {
     Write-Host "  -> Key generation skipped (-SkipKey specified)." -ForegroundColor Gray
 }
 
-# 6. Run Gate Regression Tests
-Write-Host "`n[VERIFY] Running full 29-test verification suite..." -ForegroundColor Yellow
+# 6. Run Gate Regression Tests & Rules Parity
+Write-Host "`n[VERIFY] Running regression test suite and rules parity check..." -ForegroundColor Yellow
 & node scripts/test-check-approval.mjs
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Verification tests failed!"
@@ -144,5 +146,5 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "`n==========================================================" -ForegroundColor Green
-Write-Host "🎉 SUCCESS: Device is 100% configured for Master Foundation v6.5!" -ForegroundColor Green
+Write-Host "🎉 SUCCESS: Device is 100% configured for Master Foundation v6.5.1!" -ForegroundColor Green
 Write-Host "==========================================================" -ForegroundColor Green

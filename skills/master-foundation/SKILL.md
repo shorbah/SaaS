@@ -12,7 +12,7 @@ description: >-
   claiming completion.
   الكلمات: بناء تطبيق، ميزة، API، قاعدة بيانات، صلاحيات، تدقيق أمني، هوية بصرية، خطة برمجية، تصميم معماري، مواصفات ميزة، dependencies، CI/CD، payments، secrets، spec، speckit، architecture plan، حراسة الاعتماد، approval gate، بوابة مشفرة، plannotator، تشفير الخطط، anti-drift.
 metadata:
-  version: 6.5.0
+  version: 6.5.1
 ---
 
 # Master Foundation

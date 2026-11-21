@@ -9,7 +9,7 @@
 | صياغة المواصفات (SDD) | `speckit-specify` | كتابة مسودة المتطلبات في `spec.md` يدوياً |
 | استيضاح المواصفة وسد الفجوات | `speckit-clarify` | أسئلة مركزة مبنية على `spec.md` في المحادثة |
 | صياغة الخطة والتصميم | `speckit-plan` (أو SDD-Lite) | كتابة خطة في `docs/plans/<name>.md` |
-| بوابة اعتماد الخطة (ميكانيكية) | `plannotator` (`--gate --json --result-file APPROVAL.json`) | عرض الخطة كـ Artifact وطلب موافقة كتابية صريحة |
+| بوابة اعتماد الخطة (ميكانيكية) | `plannotator` (`--gate --json --result-file .mf/gate-result.json`) | عرض الخطة كـ Artifact وطلب موافقة كتابية صريحة |
 | مراجعة الفروقات الكودية بصرياً | `plannotator` (`plannotator review`) | `git diff` |
 | تفكيك المهام المنضبطة (TDD) | `speckit-tasks` | قائمة مهام مرتبة تسبق فيها الاختبارات الكود |
 | تنفيذ المهام البرمجية | `speckit-implement` | تطبيق دورة Red-Green-Refactor يدوياً |
