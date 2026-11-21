@@ -19,50 +19,60 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Verify and inspect actual merge tree (Anti-TOCTOU)
+      - name: Prepare trusted verifier & merge base (Anti-TOCTOU / Anti-Tamper)
         env:
           BASE_REF: ${{ github.base_ref || 'main' }}
         run: |
           echo "Fetching target base branch: origin/$BASE_REF"
           git fetch origin "$BASE_REF" --depth=50 || true
           MERGE_BASE=$(git merge-base "origin/$BASE_REF" HEAD || git rev-parse HEAD~1 || git rev-parse HEAD)
+          echo "MERGE_BASE=$MERGE_BASE" >> "$GITHUB_ENV"
           echo "Merge base commit: $MERGE_BASE"
           echo "Current HEAD commit (Merge Tree): $(git rev-parse HEAD)"
 
-      - name: Regression tests for gate and v6.5 specs (EVAL-33..EVAL-48)
-        run: node scripts/test-check-approval.mjs
+          mkdir -p /tmp/mf-trusted
+          git show "origin/$BASE_REF:scripts/check-approval.mjs" > /tmp/mf-trusted/check-approval.mjs
+          git show "origin/$BASE_REF:.mf/allowed_signers.json" > /tmp/mf-trusted/allowed_signers.json
 
-      - name: Verify approvals, decisions, and anti-drift
-        run: node scripts/check-approval.mjs
+          if grep -q -- '--signers-file' /tmp/mf-trusted/check-approval.mjs; then
+            echo "VERIFIER_SCRIPT=/tmp/mf-trusted/check-approval.mjs" >> "$GITHUB_ENV"
+          else
+            echo "Base branch predates v6.5.1 --signers-file; verifying against trusted base signers."
+            echo "VERIFIER_SCRIPT=scripts/check-approval.mjs" >> "$GITHUB_ENV"
+          fi
+          echo "TRUSTED_SIGNERS=/tmp/mf-trusted/allowed_signers.json" >> "$GITHUB_ENV"
+
+      - name: Regression tests & IDE rules parity check
+        run: |
+          node scripts/test-check-approval.mjs
+          node scripts/generate-bundle.mjs --check-rules
+
+      - name: Verify approvals, signatures, and anti-drift (using trusted base verifier)
+        run: node "$VERIFIER_SCRIPT" --signers-file "$TRUSTED_SIGNERS" --base "$MERGE_BASE"
 
       - name: Verify Strict Scope on actual merge tree
-        env:
-          BASE_REF: ${{ github.base_ref || 'main' }}
-        run: |
-          node scripts/check-approval.mjs --check-scope --base "origin/$BASE_REF"
+        run: node "$VERIFIER_SCRIPT" --check-scope --signers-file "$TRUSTED_SIGNERS" --base "$MERGE_BASE"
 
-      - name: Check for disallowed symlinks and path traversals in merge tree
-        env:
-          BASE_REF: ${{ github.base_ref || 'main' }}
+      - name: Check for disallowed symlinks in merge tree
         run: |
-          CHANGED_FILES=$(git diff --name-only "origin/$BASE_REF"...HEAD || true)
-          for file in $CHANGED_FILES; do
+          while IFS= read -r -d '' file; do
             if [ -L "$file" ]; then
               TARGET=$(readlink -f "$file" || realpath "$file")
               echo "Symlink detected: $file -> $TARGET"
               case "$TARGET" in
-                "$PWD"*) echo "Symlink target is inside repository root." ;;
+                "$PWD"/*) echo "Symlink target is inside repository root." ;;
                 *) echo "[ERROR] Symlink $file targets outside workspace: $TARGET" && exit 1 ;;
               esac
             fi
-          done
+          done < <(git diff -z --name-only "$MERGE_BASE"...HEAD)
 
       - name: Every touched spec has an APPROVAL.json
-        env:
-          BASE_REF: ${{ github.base_ref || 'main' }}
         run: |
-          CHANGED_SPECS=$(git diff --name-only "origin/$BASE_REF"...HEAD -- 'specs/**' \
-            | awk -F'/' '$1 == "specs" && NF >= 3 {print $1"/"$2}' | sort -u)
+          CHANGED_SPECS=$(git diff --name-only "$MERGE_BASE"...HEAD -- 'specs/**' \
+            | awk -F'/' '
+                $1 == "specs" && $2 == "archive" && NF >= 4 {print $1"/"$2"/"$3; next}
+                $1 == "specs" && $2 != "archive" && NF >= 3 {print $1"/"$2}
+              ' | sort -u)
           for dir in $CHANGED_SPECS; do
             if [ -d "$dir" ] && [ ! -f "$dir/APPROVAL.json" ]; then
               echo "[ERROR] Spec directory '$dir' was touched without an APPROVAL.json gate record!"

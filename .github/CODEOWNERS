@@ -1,1 +1,13 @@
+# Master Foundation Guardrail & Approval Ownership (v6.5.1)
 specs/**/APPROVAL.json @shorbah
+.mf/** @shorbah
+scripts/** @shorbah
+.github/** @shorbah
+.githooks/** @shorbah
+AGENTS.md @shorbah
+CLAUDE.md @shorbah
+.cursorrules @shorbah
+.windsurfrules @shorbah
+.cursor/rules/** @shorbah
+skills/master-foundation/** @shorbah
+.agents/skills/master-foundation/** @shorbah
