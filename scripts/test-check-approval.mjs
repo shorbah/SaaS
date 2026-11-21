@@ -403,15 +403,20 @@ testCase('expired_active_approval_is_rejected', () => {
 });
 
 testCase('archived_expired_approval_passes_intact_and_fails_tampered', () => {
+  const activeDir = 'specs/001-done';
   const archivedDir = 'specs/archive/001-done';
-  writeTmp(`${archivedDir}/spec.md`, '# completed feature\n');
+  writeTmp(`${activeDir}/spec.md`, '# completed feature\n');
   const sealed = sealSigned({
-    specDir: archivedDir,
-    files: [`${archivedDir}/spec.md`],
+    specDir: activeDir,
+    files: [`${activeDir}/spec.md`],
     allowedPaths: 'src/legacy/**',
     extraArgs: ['--expires-in', '-30']
   });
   if (sealed.status !== 0) return `seal failed: ${sealed.stderr}`;
+
+  // Relocate sealed spec folder into specs/archive/ without re-signing (real post-merge workflow)
+  fs.mkdirSync(path.join(tmp, 'specs/archive'), { recursive: true });
+  fs.renameSync(path.join(tmp, activeDir), path.join(tmp, archivedDir));
 
   // Archived & expired must pass verify when intact
   const intact = runCli([]);

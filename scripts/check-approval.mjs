@@ -576,10 +576,23 @@ function verifyApprovalRecord(approvalPath, ctx) {
     };
   }
 
+  const approvalDir = path.dirname(approvalPath);
   const sealed = new Set();
   for (const [sealedFile, expectedHash] of Object.entries(fileHashes)) {
+    const normSealed = sealedFile.replace(/\\/g, '/');
     let resolved = path.resolve(ctx.root, sealedFile);
-    if (!fs.existsSync(resolved)) resolved = path.resolve(path.dirname(approvalPath), sealedFile);
+    if (
+      !fs.existsSync(resolved) &&
+      archived &&
+      normSealed.startsWith('specs/') &&
+      !normSealed.startsWith('specs/archive/')
+    ) {
+      const relocated = path.resolve(ctx.root, normSealed.replace(/^specs\//, 'specs/archive/'));
+      if (insideCwd(relocated, approvalDir)) {
+        resolved = relocated;
+      }
+    }
+    if (!fs.existsSync(resolved)) resolved = path.resolve(approvalDir, sealedFile);
     if (!fs.existsSync(resolved)) {
       errors.push(`[check-approval] FILE MISSING: ${sealedFile} referenced in ${relApproval}`);
       continue;
